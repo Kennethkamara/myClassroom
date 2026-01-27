@@ -4,20 +4,18 @@
  */
 
 const GoogleSheetsAPI = {
-    sheetId: null,
+    sheetId: '12M5dkOQxppasREU3u22tTVVXEHeEHQ1D0Fg_3uGi_os', // Hardcoded ID provided by user
     baseUrl: null,
 
     /**
-     * Initialize - get sheet ID from localStorage
+     * Initialize
      */
     init() {
-        this.sheetId = localStorage.getItem('google_sheets_id');
         if (this.sheetId) {
             this.baseUrl = `https://docs.google.com/spreadsheets/d/${this.sheetId}`;
             console.log('Google Sheets connected:', this.sheetId);
             return true;
         }
-        console.warn('No Google Sheet connected. Please run setup.html first.');
         return false;
     },
 

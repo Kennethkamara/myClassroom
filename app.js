@@ -15,6 +15,22 @@ const App = {
         // Initialize API client
         await APIClient.init();
 
+        // Initialize Google Sheets API
+        if (window.GoogleSheetsAPI) {
+            GoogleSheetsAPI.init();
+        }
+
+        // Initialize Theme Manager
+        try {
+            ThemeManager.init();
+            const themeBtn = document.getElementById('themeToggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', () => ThemeManager.toggleTheme());
+            }
+        } catch (e) {
+            console.error('Error initializing theme:', e);
+        }
+
         // Initialize modules
         await this.initializeModules();
 
@@ -86,6 +102,9 @@ const App = {
             }
         });
 
+        // Trigger data refresh for specific tabs
+        this.refreshTab(tabName);
+
         // Track in URL hash (optional, for bookmarking)
         window.location.hash = tabName;
     },
@@ -95,6 +114,24 @@ const App = {
      */
     getCurrentTab() {
         return this.currentTab;
+    },
+
+    /**
+     * Refresh data for specific tab
+     */
+    async refreshTab(tabName) {
+        switch (tabName) {
+            case 'students':
+                if (window.StudentManager) await StudentManager.loadStudents();
+                break;
+            case 'marks':
+                if (window.MarksTable) await MarksTable.loadData();
+                break;
+            case 'config':
+            case 'dashboard':
+                if (window.ConfigManager) await ConfigManager.loadSelectOptions();
+                break;
+        }
     }
 };
 

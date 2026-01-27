@@ -27,10 +27,11 @@ const APIClient = {
     async init() {
         if (this.USE_DUMMY_DATA) {
             // Check if data exists in localStorage
-            const hasData = Utils.getLocalStorage(this.STORAGE_KEYS.STUDENTS);
+            const storedStudents = Utils.getLocalStorage(this.STORAGE_KEYS.STUDENTS);
+            const hasData = storedStudents && storedStudents.length > 0;
 
             if (!hasData) {
-                // First time - load dummy data into localStorage
+                // First time or empty - load dummy data into localStorage
                 const data = DummyData.getAllData();
                 Utils.setLocalStorage(this.STORAGE_KEYS.CLASSES, data.classes);
                 Utils.setLocalStorage(this.STORAGE_KEYS.SUBJECTS, data.subjects);
@@ -45,20 +46,26 @@ const APIClient = {
     /**
      * Fetch data from a sheet
      */
+    /**
+     * Fetch data from a sheet
+     */
     async fetchData(sheetName) {
-        if (this.USE_DUMMY_DATA) {
-            // Return from localStorage
-            return Utils.getLocalStorage(this.STORAGE_KEYS[sheetName.toUpperCase()], []);
+        // Try to fetch from Google Sheets first
+        try {
+            if (window.GoogleSheetsAPI && GoogleSheetsAPI.isConnected()) {
+                const data = await GoogleSheetsAPI.fetchSheet(sheetName);
+                if (data && data.length > 0) {
+                    // Update local storage with fresh data
+                    Utils.setLocalStorage(this.STORAGE_KEYS[sheetName.toUpperCase()], data);
+                    return data;
+                }
+            }
+        } catch (error) {
+            console.error(`Error fetching ${sheetName} from Google Sheets:`, error);
         }
 
-        // TODO: Implement Google Sheets API call
-        try {
-            const response = await fetch(`${this.GOOGLE_SCRIPT_URL}?action=get&sheet=${sheetName}`);
-            return await response.json();
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            throw error;
-        }
+        // Fallback to localStorage/Dummy Data
+        return Utils.getLocalStorage(this.STORAGE_KEYS[sheetName.toUpperCase()], []);
     },
 
     /**
