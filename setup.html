@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Google Sheets Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c5aa0;
+            margin-bottom: 10px;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .form-group {
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .current-url {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            word-break: break-all;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🔗 Google Sheets Setup</h1>
+        <p>Enter your Google Sheets URL to connect the database.</p>
+
+        <div class="info-box">
+            <strong>📋 Quick Steps:</strong><br>
+            1. Create a Google Sheet with 6 tabs: Students, Classes, Subjects, Terms, Configurations, Marks<br>
+            2. Share it as "Anyone with link can edit"<br>
+            3. Copy the URL and paste below<br>
+            4.See <strong>GOOGLE-SHEETS-SETUP.md</strong> for detailed instructions
+        </div>
+
+        <div class="form-group">
+            <label for="sheetUrl">Google Sheets URL:</label>
+            <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit">
+            <small style="color: #666;">Paste the full URL from your browser</small>
+        </div>
+
+        <button onclick="saveSheetUrl()">💾 Save & Connect</button>
+
+        <div class="status" id="status"></div>
+
+        <div id="currentUrlDiv" style="display: none; margin-top: 20px;">
+            <strong>Current Connected Sheet:</strong>
+            <div class="current-url" id="currentUrl"></div>
+            <button onclick="testConnection()" style="background: #2c5aa0; margin-top: 10px;">
+                🧪 Test Connection
+            </button>
+            <button onclick="clearUrl()" style="background: #dc3545; margin-top: 10px;">
+                🗑️ Disconnect
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Check if URL already saved
+        window.onload = function () {
+            const savedUrl = localStorage.getItem('google_sheets_url');
+            if (savedUrl) {
+                document.getElementById('currentUrl').textContent = savedUrl;
+                document.getElementById('currentUrlDiv').style.display = 'block';
+                document.getElementById('sheetUrl').value = savedUrl;
+            }
+        };
+
+        function saveSheetUrl() {
+            const url = document.getElementById('sheetUrl').value.trim();
+
+            if (!url) {
+                showStatus('error', 'Please enter a Google Sheets URL');
+                return;
+            }
+
+            // Basic validation
+            if (!url.includes('docs.google.com/spreadsheets')) {
+                showStatus('error', 'Invalid Google Sheets URL. Make sure you copied the full URL from your browser.');
+                return;
+            }
+
+            // Extract sheet ID
+            const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            if (!match) {
+                showStatus('error', 'Could not extract Sheet ID from URL');
+                return;
+            }
+
+            const sheetId = match[1];
+
+            // Save to localStorage
+            localStorage.setItem('google_sheets_url', url);
+            localStorage.setItem('google_sheets_id', sheetId);
+
+            // Clear old localStorage data
+            localStorage.removeItem('cmt_students');
+            localStorage.removeItem('cmt_marks');
+            localStorage.removeItem('cmt_configurations');
+            localStorage.removeItem('cmt_classes');
+            localStorage.removeItem('cmt_subjects');
+            localStorage.removeItem('cmt_terms');
+
+            showStatus('success', '✅ Connected successfully! Now open index.html to use the app with Google Sheets.');
+
+            document.getElementById('currentUrl').textContent = url;
+            document.getElementById('currentUrlDiv').style.display = 'block';
+        }
+
+        function testConnection() {
+            const sheetId = localStorage.getItem('google_sheets_id');
+            if (!sheetId) {
+                alert('No sheet connected');
+                return;
+            }
+
+            // Try to open the sheet
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/edit`;
+            window.open(url, '_blank');
+        }
+
+        function clearUrl() {
+            if (confirm('Are you sure you want to disconnect Google Sheets?')) {
+                localStorage.removeItem('google_sheets_url');
+                localStorage.removeItem('google_sheets_id');
+                document.getElementById('sheetUrl').value = '';
+                document.getElementById('currentUrlDiv').style.display = 'none';
+                showStatus('success', 'Disconnected from Google Sheets');
+            }
+        }
+
+        function showStatus(type, message) {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            status.style.display = 'block';
+
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+
+</html>

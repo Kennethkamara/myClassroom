@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Update Classes to 101/102</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 20px;
+            text-align: center;
+            background: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background: #2c5aa0;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+
+        button:hover {
+            background: #1e4278;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 18px;
+            display: none;
+        }
+
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>📚 Update Classes</h1>
+        <p>This will update your classes to include 101/102 subdivisions</p>
+
+        <div class="info">
+            <strong>Old Classes:</strong><br>
+            JSS 1, JSS 2, JSS 3
+            <br><br>
+            <strong>New Classes:</strong><br>
+            JSS 1-101, JSS 1-102<br>
+            JSS 2-101, JSS 2-102<br>
+            JSS 3-101, JSS 3-102
+        </div>
+
+        <button onclick="updateClasses()">Update Classes Now</button>
+
+        <div class="success" id="success">
+            ✅ Classes updated!<br>
+            Now refresh index.html (F5) to see the changes!
+        </div>
+    </div>
+
+    <script>
+        function updateClasses() {
+            // Update classes in localStorage
+            const newClasses = [
+                { id: 'cls_1_101', name: 'JSS 1-101' },
+                { id: 'cls_1_102', name: 'JSS 1-102' },
+                { id: 'cls_2_101', name: 'JSS 2-101' },
+                { id: 'cls_2_102', name: 'JSS 2-102' },
+                { id: 'cls_3_101', name: 'JSS 3-101' },
+                { id: 'cls_3_102', name: 'JSS 3-102' }
+            ];
+
+            localStorage.setItem('cmt_classes', JSON.stringify(newClasses));
+
+            // Show success
+            document.querySelector('button').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
+
+            console.log('Classes updated to:', newClasses);
+
+            alert('✅ Classes updated successfully!\n\n1. Close this page\n2. Open index.html\n3. Press F5 to refresh\n4. You will see the new classes!');
+        }
+    </script>
+</body>
+
+</html>

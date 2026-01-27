@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Clear All Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 20px;
+            text-align: center;
+            background: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+
+        button:hover {
+            background: #c82333;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 18px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🗑️ Clear Browser Storage</h1>
+        <p>Click button to remove ALL old mock data from your browser</p>
+        <button onclick="clearStorage()">Clear Everything</button>
+        <div class="success" id="success">
+            ✅ Done! Now refresh index.html
+        </div>
+    </div>
+
+    <script>
+        function clearStorage() {
+            // Remove ALL localStorage items
+            localStorage.removeItem('cmt_students');
+            localStorage.removeItem('cmt_marks');
+            localStorage.removeItem('cmt_configurations');
+            localStorage.removeItem('cmt_classes');
+            localStorage.removeItem('cmt_subjects');
+            localStorage.removeItem('cmt_terms');
+
+            document.querySelector('button').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
+
+            alert('✅ All old data deleted! Now:\n1. Close this page\n2. Go to index.html\n3. Press F5 to refresh\n4. Start adding YOUR students!');
+        }
+    </script>
+</body>
+
+</html>

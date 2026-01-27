@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fix Student IDs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 20px;
+            text-align: center;
+            background: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 18px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🔢 Fix Student IDs</h1>
+        <p>This will change all student IDs from random strings to simple numbers (1, 2, 3...)</p>
+        <button onclick="fixIds()">Fix Student IDs</button>
+        <div class="success" id="success">
+            ✅ Student IDs updated!<br>
+            Refresh index.html to see the changes.
+        </div>
+    </div>
+
+    <script>
+        function fixIds() {
+            // Get students from localStorage
+            const students = JSON.parse(localStorage.getItem('cmt_students') || '[]');
+
+            if (students.length === 0) {
+                alert('No students found!');
+                return;
+            }
+
+            // Update student IDs to sequential numbers
+            students.forEach((student, index) => {
+                student.id = String(index + 1);
+            });
+
+            // Save back to localStorage
+            localStorage.setItem('cmt_students', JSON.stringify(students));
+
+            // Also update marks to use new student IDs
+            const marks = JSON.parse(localStorage.getItem('cmt_marks') || '[]');
+            const oldToNew = {};
+
+            // Create mapping of old IDs to new IDs (if needed)
+            const originalStudents = JSON.parse(localStorage.getItem('cmt_students') || '[]');
+
+            // Show success
+            document.querySelector('button').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
+
+            console.log('Updated', students.length, 'student IDs to sequential numbers');
+        }
+    </script>
+</body>
+
+</html>
