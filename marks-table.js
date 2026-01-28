@@ -495,7 +495,7 @@ const MarksTable = {
                     return indexA - indexB;
                 });
 
-                this.renderTable();
+                this.renderMarksTable();
                 Utils.showToast(`Imported marks for ${matchCount} students. Click 'Save All Marks' to persist.`, 'success');
 
             } catch (error) {
