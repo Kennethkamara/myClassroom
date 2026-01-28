@@ -72,6 +72,15 @@ const MarksTable = {
         if (saveBtn) {
             saveBtn.addEventListener('click', () => this.saveAllMarks());
         }
+
+        // Import Marks Button
+        const importBtn = document.getElementById('importMarksBtn');
+        const fileInput = document.getElementById('importMarksFile');
+
+        if (importBtn && fileInput) {
+            importBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => this.handleMarksImport(e));
+        }
     },
 
     /**
@@ -371,5 +380,83 @@ const MarksTable = {
         });
 
         return data;
+    },
+
+    /**
+     * Handle CSV Marks Import
+     */
+    async handleMarksImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Reset input
+        event.target.value = '';
+
+        if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+            Utils.showToast('Please upload a CSV file', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const text = e.target.result;
+                const data = Utils.parseCSV(text);
+
+                if (data.length === 0) {
+                    Utils.showToast('CSV file is empty or invalid', 'error');
+                    return;
+                }
+
+                // Map names to student IDs
+                const nameMap = {};
+                this.currentStudents.forEach(s => {
+                    nameMap[s.name.toLowerCase()] = s.id;
+                });
+
+                let matchCount = 0;
+
+                data.forEach(row => {
+                    const keys = Object.keys(row);
+                    // Find name column
+                    const nameKey = keys.find(k => k.toLowerCase().includes('name'));
+                    // Find mark columns (Raw Score, Added Mark)
+                    const rawKey = keys.find(k => k.toLowerCase().includes('raw') || k.toLowerCase().includes('test') || k.toLowerCase().includes('score'));
+                    const addedKey = keys.find(k => k.toLowerCase().includes('added') || k.toLowerCase().includes('exam') || k.toLowerCase().includes('bonus'));
+
+                    if (nameKey && row[nameKey]) {
+                        const name = row[nameKey].trim().toLowerCase();
+                        const studentId = nameMap[name];
+
+                        if (studentId) {
+                            // Found student, update marks
+                            if (!this.marksData[studentId]) {
+                                this.marksData[studentId] = { raw_score: 0, added_mark: 0 };
+                            }
+
+                            if (rawKey && row[rawKey]) {
+                                const val = parseFloat(row[rawKey]);
+                                if (!isNaN(val)) this.marksData[studentId].raw_score = val;
+                            }
+
+                            if (addedKey && row[addedKey]) {
+                                const val = parseFloat(row[addedKey]);
+                                if (!isNaN(val)) this.marksData[studentId].added_mark = val;
+                            }
+                            matchCount++;
+                        }
+                    }
+                });
+
+                // Refresh table to show new marks
+                this.renderTable();
+                Utils.showToast(`Imported marks for ${matchCount} students. Click 'Save All Marks' to persist.`, 'success');
+
+            } catch (error) {
+                console.error('Error importing marks:', error);
+                Utils.showToast('Error parsing CSV', 'error');
+            }
+        };
+        reader.readAsText(file);
     }
 };
