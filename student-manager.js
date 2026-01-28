@@ -161,10 +161,10 @@ const StudentManager = {
         }
 
         tbody.innerHTML = '';
-        filtered.forEach(student => {
+        filtered.forEach((student, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${student.id}</td>
+                <td>${index + 1}</td>
                 <td>${student.name}</td>
                 <td>${classMap[student.class_id] || 'Unknown'}</td>
                 <td>
