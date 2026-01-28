@@ -506,6 +506,15 @@ textarea {
     color: var(--white);
 }
 
+.btn-secondary {
+    background-color: var(--gray-500);
+    color: var(--white);
+}
+
+.btn-secondary:hover {
+    background-color: var(--gray-400);
+}
+
 .btn-danger {
     background-color: var(--accent-red);
     color: var(--white);
