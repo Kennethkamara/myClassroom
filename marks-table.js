@@ -384,6 +384,7 @@ const MarksTable = {
 
     /**
      * Handle CSV Marks Import
+     * "Import the whole csv and it arrange the table exactly how the csv is"
      */
     async handleMarksImport(event) {
         const file = event.target.files[0];
@@ -408,21 +409,54 @@ const MarksTable = {
                     return;
                 }
 
-                // Map names to student IDs
-                const nameMap = {};
-                this.currentStudents.forEach(s => {
-                    if (s.name) {
-                        nameMap[s.name.toLowerCase()] = s.id;
-                    }
-                });
-
-                let matchCount = 0;
+                // 1. Identify missing students
+                const existingNames = new Set(this.currentStudents.map(s => s.name.toLowerCase()));
+                const newStudents = [];
+                const csvNamesOrder = []; // To preserve CSV order
 
                 data.forEach(row => {
                     const keys = Object.keys(row);
-                    // Find name column
                     const nameKey = keys.find(k => k.toLowerCase().includes('name'));
-                    // Find mark columns (Raw Score, Added Mark)
+                    if (nameKey && row[nameKey]) {
+                        const name = row[nameKey].trim();
+                        csvNamesOrder.push(name.toLowerCase());
+
+                        if (!existingNames.has(name.toLowerCase())) {
+                            newStudents.push(name);
+                            existingNames.add(name.toLowerCase()); // Avoid duplicates in new list
+                        }
+                    }
+                });
+
+                // 2. Add missing students if any
+                if (newStudents.length > 0) {
+                    if (confirm(`Found ${newStudents.length} new students in CSV. Add them to this class?`)) {
+                        Utils.showLoading();
+                        for (const name of newStudents) {
+                            await APIClient.addStudent({
+                                name: name,
+                                class_id: this.selectedClass
+                            });
+                        }
+                        // Reload fresh list
+                        this.currentStudents = await APIClient.getStudentsByClass(this.selectedClass);
+                        Utils.hideLoading();
+                        Utils.showToast(`Added ${newStudents.length} new students.`, 'success');
+                    }
+                }
+
+                // 3. Update Marks Data
+                const nameMap = {};
+                this.currentStudents.forEach(s => {
+                    if (s.name) nameMap[s.name.toLowerCase()] = s.id;
+                });
+
+                let matchCount = 0;
+                data.forEach(row => {
+                    const keys = Object.keys(row);
+                    const nameKey = keys.find(k => k.toLowerCase().includes('name'));
+
+                    // Mark Columns
                     const rawKey = keys.find(k => k.toLowerCase().includes('raw') || k.toLowerCase().includes('test') || k.toLowerCase().includes('score'));
                     const addedKey = keys.find(k => k.toLowerCase().includes('added') || k.toLowerCase().includes('exam') || k.toLowerCase().includes('bonus'));
 
@@ -431,16 +465,13 @@ const MarksTable = {
                         const studentId = nameMap[name];
 
                         if (studentId) {
-                            // Found student, update marks
                             if (!this.marksData[studentId]) {
                                 this.marksData[studentId] = { raw_score: 0, added_mark: 0 };
                             }
-
                             if (rawKey && row[rawKey]) {
                                 const val = parseFloat(row[rawKey]);
                                 if (!isNaN(val)) this.marksData[studentId].raw_score = val;
                             }
-
                             if (addedKey && row[addedKey]) {
                                 const val = parseFloat(row[addedKey]);
                                 if (!isNaN(val)) this.marksData[studentId].added_mark = val;
@@ -450,13 +481,27 @@ const MarksTable = {
                     }
                 });
 
-                // Refresh table to show new marks
+                // 4. Sort table to match CSV order
+                // We create a map of name -> index in CSV
+                const orderMap = {};
+                csvNamesOrder.forEach((name, index) => {
+                    orderMap[name] = index;
+                });
+
+                // Sort existing students: CSV names first (in order), then others
+                this.currentStudents.sort((a, b) => {
+                    const indexA = orderMap[a.name.toLowerCase()] !== undefined ? orderMap[a.name.toLowerCase()] : 999999;
+                    const indexB = orderMap[b.name.toLowerCase()] !== undefined ? orderMap[b.name.toLowerCase()] : 999999;
+                    return indexA - indexB;
+                });
+
                 this.renderTable();
                 Utils.showToast(`Imported marks for ${matchCount} students. Click 'Save All Marks' to persist.`, 'success');
 
             } catch (error) {
                 console.error('Error importing marks:', error);
                 Utils.showToast('Error parsing CSV', 'error');
+                Utils.hideLoading();
             }
         };
         reader.readAsText(file);

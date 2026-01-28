@@ -73,6 +73,12 @@ const StudentManager = {
             fileInput.addEventListener('change', (e) => this.handleImport(e));
         }
 
+        // Delete Class Button
+        const deleteClassBtn = document.getElementById('deleteClassBtn');
+        if (deleteClassBtn) {
+            deleteClassBtn.addEventListener('click', () => this.deleteCurrentClass());
+        }
+
         // Class filter
         const classFilter = document.getElementById('studentClassFilter');
         if (classFilter) {
