@@ -63,6 +63,16 @@ const StudentManager = {
             addBtn.addEventListener('click', () => this.showAddStudentModal());
         }
 
+        // Import student button
+        const importBtn = document.getElementById('importStudentBtn');
+        const fileInput = document.getElementById('importStudentFile');
+
+        if (importBtn && fileInput) {
+            importBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => this.handleImport(e));
+        }
+
         // Class filter
         const classFilter = document.getElementById('studentClassFilter');
         if (classFilter) {
@@ -295,5 +305,103 @@ const StudentManager = {
             Utils.showToast('Error deleting student', 'error');
             Utils.hideLoading();
         }
+    },
+
+    /**
+     * Handle CSV Import
+     */
+    async handleImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Reset input so same file can be selected again
+        event.target.value = '';
+
+        if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+            Utils.showToast('Please upload a CSV file', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const text = e.target.result;
+                const data = Utils.parseCSV(text);
+
+                if (data.length === 0) {
+                    Utils.showToast('CSV file is empty or invalid', 'error');
+                    return;
+                }
+
+                // Basic validation/mapping
+                // Expect headers like: "Name", "Class" (or "name", "class_id")
+                // We'll normalize keys to lowercase match
+
+                const validStudents = [];
+                let skipCount = 0;
+
+                // Get valid classes to map names to IDs if needed
+                const classes = await APIClient.getClasses();
+                const classMap = {};
+                classes.forEach(c => {
+                    classMap[c.name.toLowerCase()] = c.id;
+                    classMap[c.id.toLowerCase()] = c.id;
+                });
+
+                for (const row of data) {
+                    // Try to find name and class columns
+                    // Keys might be "Student Name", "Name", "Full Name", etc.
+                    const keys = Object.keys(row);
+                    const nameKey = keys.find(k => k.toLowerCase().includes('name'));
+                    const classKey = keys.find(k => k.toLowerCase().includes('class'));
+
+                    if (nameKey && row[nameKey]) {
+                        const name = row[nameKey].trim();
+                        let classId = 'unknown';
+
+                        // Try to map class name/id
+                        if (classKey && row[classKey]) {
+                            const classVal = row[classKey].trim().toLowerCase();
+                            // try direct match or map match
+                            if (classMap[classVal]) {
+                                classId = classMap[classVal];
+                            } else {
+                                // Default to current filter or just keep as text if system allows (system expects IDs)
+                                // If we can't map, we'll just set it to "Unassigned" or ID "1" if we must.
+                                // For now, let's look for a class with ID '1' or use the first one.
+                                classId = classes[0] ? classes[0].id : '';
+                            }
+                        } else {
+                            // If no class column, use current filter if set
+                            classId = this.currentClassFilter || (classes[0] ? classes[0].id : '');
+                        }
+
+                        validStudents.push({
+                            name: name,
+                            class_id: classId
+                        });
+                    } else {
+                        skipCount++;
+                    }
+                }
+
+                if (validStudents.length > 0) {
+                    if (confirm(`Ready to import ${validStudents.length} students?`)) {
+                        Utils.showLoading();
+                        await APIClient.importStudents(validStudents);
+                        await this.loadStudents();
+                        Utils.hideLoading();
+                        Utils.showToast(`Successfully imported ${validStudents.length} students`, 'success');
+                    }
+                } else {
+                    Utils.showToast('No valid student data found in CSV. Headers should include "Name" and "Class".', 'error');
+                }
+
+            } catch (error) {
+                console.error('Import error:', error);
+                Utils.showToast('Error parsing CSV file', 'error');
+            }
+        };
+        reader.readAsText(file);
     }
 };

@@ -5,30 +5,51 @@
 
 const App = {
     currentTab: 'dashboard',
+    currentUser: null, // Added to store the authenticated user
 
     /**
      * Initialize application
      */
     async init() {
+        // Check authentication
+        firebase.auth().onAuthStateChanged(user => {
+            if (!user) {
+                // Not logged in, redirect to login
+                window.location.href = 'login.html';
+            } else {
+                console.log("User authenticated:", user.email);
+                this.currentUser = user;
+                this.initializeApp();
+            }
+        });
+
+        // Logout handler
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                firebase.auth().signOut().then(() => {
+                    window.location.href = 'login.html';
+                });
+            });
+        }
+    },
+
+    async initializeApp() {
         console.log('Initializing Student Marks Management System...');
 
-        // Initialize API client
+        // Initialize Theme
+        ThemeManager.init();
+        const themeBtn = document.getElementById('themeToggle');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', () => ThemeManager.toggleTheme());
+        }
+
+        // Initialize API Client
         await APIClient.init();
 
         // Initialize Google Sheets API
         if (window.GoogleSheetsAPI) {
             GoogleSheetsAPI.init();
-        }
-
-        // Initialize Theme Manager
-        try {
-            ThemeManager.init();
-            const themeBtn = document.getElementById('themeToggle');
-            if (themeBtn) {
-                themeBtn.addEventListener('click', () => ThemeManager.toggleTheme());
-            }
-        } catch (e) {
-            console.error('Error initializing theme:', e);
         }
 
         // Initialize modules

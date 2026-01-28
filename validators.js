@@ -112,8 +112,8 @@ const Validators = {
         // Cap at configured contribution percentage
         finalContribution = Math.min(finalContribution, contribution);
 
-        // Round to 2 decimal places
-        return parseFloat(finalContribution.toFixed(2));
+        // Round UP to nearest whole number as requested
+        return Math.ceil(finalContribution);
     },
 
     /**

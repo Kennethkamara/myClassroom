@@ -46,6 +46,27 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Row added" }))
         .setMimeType(ContentService.MimeType.JSON);
     }
+    
+    if (action === "import") {
+      // keys: array of column names in the order of the values
+      // rows: array of arrays of values
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      const rowsToAppend = data.rows.map(rowObj => {
+        return headers.map(header => rowObj[header] || "");
+      });
+      
+      if (rowsToAppend.length > 0) {
+        // appendRow only does one, generic getRange + setValues is better for bulk
+        const lastRow = sheet.getLastRow();
+        const numRows = rowsToAppend.length;
+        const numCols = rowsToAppend[0].length;
+        
+        sheet.getRange(lastRow + 1, 1, numRows, numCols).setValues(rowsToAppend);
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: `${rowsToAppend.length} rows imported` }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
   } catch (error) {
      return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() }))
         .setMimeType(ContentService.MimeType.JSON);

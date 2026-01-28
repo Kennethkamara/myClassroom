@@ -8,10 +8,9 @@
 
 const APIClient = {
     // Configuration
-    USE_DUMMY_DATA: true, // Set to false when connecting to Google Sheets
-    GOOGLE_SCRIPT_URL: '', // Add your Google Apps Script deployment URL here
+    USE_FIREBASE: true,
 
-    // Local storage keys
+    // Local storage keys (Fallback / Cache)
     STORAGE_KEYS: {
         CLASSES: 'cmt_classes',
         SUBJECTS: 'cmt_subjects',
@@ -22,78 +21,55 @@ const APIClient = {
     },
 
     /**
-     * Initialize data (load from localStorage or use dummy data)
+     * Initialize data
      */
     async init() {
-        if (this.USE_DUMMY_DATA) {
-            // Check if data exists in localStorage
-            const storedStudents = Utils.getLocalStorage(this.STORAGE_KEYS.STUDENTS);
-            const hasData = storedStudents && storedStudents.length > 0;
-
-            if (!hasData) {
-                // First time or empty - load dummy data into localStorage
-                const data = DummyData.getAllData();
-                Utils.setLocalStorage(this.STORAGE_KEYS.CLASSES, data.classes);
-                Utils.setLocalStorage(this.STORAGE_KEYS.SUBJECTS, data.subjects);
-                Utils.setLocalStorage(this.STORAGE_KEYS.TERMS, data.terms);
-                Utils.setLocalStorage(this.STORAGE_KEYS.STUDENTS, data.students);
-                Utils.setLocalStorage(this.STORAGE_KEYS.CONFIGURATIONS, data.configurations);
-                Utils.setLocalStorage(this.STORAGE_KEYS.MARKS, data.marks);
-            }
+        if (this.USE_FIREBASE) {
+            // Firestore is initialized in firebase-config.js
+            console.log("Using Firebase Firestore");
         }
     },
 
-    /**
-     * Fetch data from a sheet
-     */
-    /**
-     * Fetch data from a sheet
-     */
-    async fetchData(sheetName) {
-        // Try to fetch from Google Sheets first
-        try {
-            if (window.GoogleSheetsAPI && GoogleSheetsAPI.isConnected()) {
-                const data = await GoogleSheetsAPI.fetchSheet(sheetName);
-                if (data && data.length > 0) {
-                    // Update local storage with fresh data
-                    Utils.setLocalStorage(this.STORAGE_KEYS[sheetName.toUpperCase()], data);
-                    return data;
-                }
-            }
-        } catch (error) {
-            console.error(`Error fetching ${sheetName} from Google Sheets:`, error);
-        }
+    // ==========================================
+    // Core Data Methods (Firestore Implementation)
+    // ==========================================
 
-        // Fallback to localStorage/Dummy Data
-        return Utils.getLocalStorage(this.STORAGE_KEYS[sheetName.toUpperCase()], []);
-    },
-
-    /**
-     * Get all classes
-     */
     async getClasses() {
-        return this.fetchData('CLASSES');
+        try {
+            // Always return static classes for simplicity, regardless of Firebase state
+            if (typeof DummyData !== 'undefined') return DummyData.classes;
+            return [];
+        } catch (error) {
+            console.error("Error fetching classes:", error);
+            return [];
+        }
     },
 
     /**
      * Get all subjects
      */
     async getSubjects() {
-        return this.fetchData('SUBJECTS');
+        try {
+            if (typeof DummyData !== 'undefined') return DummyData.subjects;
+            return [];
+        } catch (e) { return []; }
     },
 
     /**
      * Get all terms
      */
     async getTerms() {
-        return this.fetchData('TERMS');
+        try {
+            if (typeof DummyData !== 'undefined') return DummyData.terms;
+            return [];
+        } catch (e) { return []; }
     },
 
     /**
-     * Get all students
+     * Get all students (internal helper, mostly unused directly in UI)
      */
     async getStudents() {
-        return this.fetchData('STUDENTS');
+        return [];
     },
 
     /**
@@ -105,34 +81,10 @@ const APIClient = {
     },
 
     /**
-     * Add new student
-     */
-    async addStudent(studentData) {
-        if (this.USE_DUMMY_DATA) {
-            const students = Utils.getLocalStorage(this.STORAGE_KEYS.STUDENTS, []);
-
-            // Generate sequential ID (e.g., 1, 2, 3...)
-            const maxId = students.length > 0
-                ? Math.max(...students.map(s => parseInt(s.id) || 0))
-                : 0;
-
-            const newStudent = {
-                id: String(maxId + 1),
-                ...studentData
-            };
-            students.push(newStudent);
-            Utils.setLocalStorage(this.STORAGE_KEYS.STUDENTS, students);
-            return newStudent;
-        }
-
-        // TODO: Implement Google Sheets API call
-    },
-
-    /**
      * Update student
      */
     async updateStudent(studentId, studentData) {
-        if (this.USE_DUMMY_DATA) {
+        if (!this.USE_FIREBASE) { // Assuming USE_DUMMY_DATA is implied if not using Firebase
             const students = Utils.getLocalStorage(this.STORAGE_KEYS.STUDENTS, []);
             const index = students.findIndex(s => s.id === studentId);
             if (index !== -1) {
@@ -142,9 +94,97 @@ const APIClient = {
             }
             return null;
         }
+        // Firebase update implementation
+        const user = firebase.auth().currentUser;
+        if (!user) return null;
 
-        // TODO: Implement Google Sheets API call
+        try {
+            await firebase.firestore().collection("students").doc(studentId).update(studentData);
+            return { id: studentId, ...studentData };
+        } catch (e) {
+            console.error("Error updating student:", e);
+            return null;
+        }
     },
+
+    /**
+     * Get students for a specific class
+     */
+    async getStudentsByClass(className) {
+        if (!this.USE_FIREBASE) return [];
+
+        const user = firebase.auth().currentUser;
+        if (!user) return [];
+
+        try {
+            const q = firebase.firestore().collection("students")
+                .where("teacher_id", "==", user.uid)
+                .where("class_id", "==", className);
+
+            const querySnapshot = await q.get();
+            const students = [];
+            querySnapshot.forEach((doc) => {
+                students.push({ id: doc.id, ...doc.data() });
+            });
+            return students;
+        } catch (e) {
+            console.error("Error getting students: ", e);
+            Utils.showToast("Error loading students", "error");
+            return [];
+        }
+    },
+
+    /**
+     * Add a new student
+     */
+    async addStudent(student) {
+        const user = firebase.auth().currentUser;
+        if (!user) return { status: 'error', message: 'Not logged in' };
+
+        try {
+            // Add teacher_id to the student object
+            const studentData = {
+                ...student,
+                teacher_id: user.uid,
+                created_at: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            const docRef = await firebase.firestore().collection("students").add(studentData);
+            return { status: 'success', message: 'Student added', id: docRef.id };
+        } catch (e) {
+            console.error("Error adding student: ", e);
+            return { status: 'error', message: e.message };
+        }
+    },
+
+    /**
+     * Import multiple students (CSV)
+     */
+    async importStudents(students) {
+        const user = firebase.auth().currentUser;
+        if (!user) return { status: 'error', message: 'Not logged in' };
+
+        const batch = firebase.firestore().batch();
+        const studentsRef = firebase.firestore().collection("students");
+
+        try {
+            students.forEach(student => {
+                const docRef = studentsRef.doc(); // Auto-ID
+                batch.set(docRef, {
+                    ...student,
+                    teacher_id: user.uid,
+                    created_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            });
+
+            await batch.commit();
+            return { status: 'success', message: `${students.length} students imported` };
+        } catch (e) {
+            console.error("Error importing students: ", e);
+            return { status: 'error', message: e.message };
+        }
+    },
+
 
     /**
      * Delete student
@@ -164,143 +204,169 @@ const APIClient = {
      * Get configuration
      */
     async getConfiguration(classId, subjectId, termId) {
-        const configurations = await this.fetchData('CONFIGURATIONS');
-        return configurations.find(c =>
-            c.class_id === classId &&
-            c.subject_id === subjectId &&
-            c.term_id === termId
-        ) || {
-            test_marked_over: 100,
-            max_added_marks: 20
-        };
+        if (!this.USE_FIREBASE) return DummyData.configurations[0]; // Fallback
+
+        const user = firebase.auth().currentUser;
+        if (!user) return null;
+
+        try {
+            const q = firebase.firestore().collection("configurations")
+                .where("teacher_id", "==", user.uid)
+                .where("class_id", "==", classId)
+                .where("subject_id", "==", subjectId)
+                .where("term_id", "==", termId);
+
+            const snapshot = await q.get();
+            if (!snapshot.empty) {
+                return snapshot.docs[0].data();
+            }
+            // Return default if not found
+            return {
+                test_marked_over: 100,
+                max_added_marks: 20
+            };
+        } catch (e) {
+            console.error("Error fetching config:", e);
+            return { test_marked_over: 100, max_added_marks: 20 };
+        }
     },
 
     /**
      * Save configuration
      */
     async saveConfiguration(configData) {
-        if (this.USE_DUMMY_DATA) {
-            const configurations = Utils.getLocalStorage(this.STORAGE_KEYS.CONFIGURATIONS, []);
+        const user = firebase.auth().currentUser;
+        if (!user) return false;
 
-            // Find existing config
-            const index = configurations.findIndex(c =>
-                c.class_id === configData.class_id &&
-                c.subject_id === configData.subject_id &&
-                c.term_id === configData.term_id
-            );
+        try {
+            const configurationsRef = firebase.firestore().collection("configurations");
+            const q = configurationsRef
+                .where("teacher_id", "==", user.uid)
+                .where("class_id", "==", configData.class_id)
+                .where("subject_id", "==", configData.subject_id)
+                .where("term_id", "==", configData.term_id);
 
-            if (index !== -1) {
+            const snapshot = await q.get();
+
+            if (!snapshot.empty) {
                 // Update existing
-                configurations[index] = { ...configurations[index], ...configData };
+                await snapshot.docs[0].ref.update(configData);
             } else {
                 // Create new
-                const newConfig = {
-                    id: Utils.generateId(),
-                    ...configData
-                };
-                configurations.push(newConfig);
+                await configurationsRef.add({
+                    ...configData,
+                    teacher_id: user.uid,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
             }
-
-            Utils.setLocalStorage(this.STORAGE_KEYS.CONFIGURATIONS, configurations);
             return true;
+        } catch (e) {
+            console.error("Error saving config:", e);
+            return false;
         }
-
-        // TODO: Implement Google Sheets API call
     },
 
     /**
      * Get marks
      */
     async getMarks(classId, subjectId, termId) {
-        const marks = await this.fetchData('MARKS');
-        return marks.filter(m =>
-            m.class_id === classId &&
-            m.subject_id === subjectId &&
-            m.term_id === termId
-        );
+        if (!this.USE_FIREBASE) return [];
+
+        const user = firebase.auth().currentUser;
+        if (!user) return [];
+
+        try {
+            const q = firebase.firestore().collection("marks")
+                .where("teacher_id", "==", user.uid)
+                .where("class_id", "==", classId)
+                .where("subject_id", "==", subjectId)
+                .where("term_id", "==", termId);
+
+            const snapshot = await q.get();
+            const marks = [];
+            snapshot.forEach(doc => {
+                marks.push({ id: doc.id, ...doc.data() });
+            });
+            return marks;
+        } catch (e) {
+            console.error("Error fetching marks:", e);
+            return [];
+        }
     },
 
     /**
      * Save mark
      */
     async saveMark(markData) {
-        if (this.USE_DUMMY_DATA) {
-            const marks = Utils.getLocalStorage(this.STORAGE_KEYS.MARKS, []);
+        const user = firebase.auth().currentUser;
+        if (!user) return false;
 
-            // Find existing mark
-            const index = marks.findIndex(m =>
-                m.student_id === markData.student_id &&
-                m.class_id === markData.class_id &&
-                m.subject_id === markData.subject_id &&
-                m.term_id === markData.term_id
-            );
+        try {
+            const marksRef = firebase.firestore().collection("marks");
 
-            if (index !== -1) {
-                // Update existing
-                marks[index] = { ...marks[index], ...markData };
+            // Check if mark already exists for this student/subject/term
+            const q = marksRef
+                .where("teacher_id", "==", user.uid)
+                .where("student_id", "==", markData.student_id)
+                .where("class_id", "==", markData.class_id)
+                .where("subject_id", "==", markData.subject_id)
+                .where("term_id", "==", markData.term_id);
+
+            const snapshot = await q.get();
+
+            if (!snapshot.empty) {
+                // Update
+                await snapshot.docs[0].ref.update({
+                    ...markData,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
             } else {
-                // Create new
-                const newMark = {
-                    id: Utils.generateId(),
-                    ...markData
-                };
-                marks.push(newMark);
+                // Create
+                await marksRef.add({
+                    ...markData,
+                    teacher_id: user.uid,
+                    created_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
             }
-
-            Utils.setLocalStorage(this.STORAGE_KEYS.MARKS, marks);
             return true;
+        } catch (e) {
+            console.error("Error saving mark:", e);
+            return false;
         }
-
-        // TODO: Implement Google Sheets API call
     },
 
     /**
      * Save multiple marks (batch operation)
      */
     async saveMarks(marksArray) {
-        for (const markData of marksArray) {
-            await this.saveMark(markData);
-        }
-        return true;
-    },
+        // Firestore batch has a limit of 500 operations. 
+        // For simplicity, we'll loop sequentially or use small batches.
+        // Given the array size might be small (class size), parallel promises are okay.
 
-    /**
-     * Clear all data (for testing)
-     */
-    clearAllData() {
-        if (this.USE_DUMMY_DATA) {
-            Object.values(this.STORAGE_KEYS).forEach(key => {
-                Utils.removeLocalStorage(key);
-            });
-        }
-    },
+        // Better: Use batch for atomicity
+        const user = firebase.auth().currentUser;
+        if (!user) return false;
 
-    /**
-     * Reset to dummy data
-     */
-    resetToDummyData() {
-        this.clearAllData();
-        // Force synchronous initialization
-        const data = DummyData.getAllData();
-        Utils.setLocalStorage(this.STORAGE_KEYS.CLASSES, data.classes);
-        Utils.setLocalStorage(this.STORAGE_KEYS.SUBJECTS, data.subjects);
-        Utils.setLocalStorage(this.STORAGE_KEYS.TERMS, data.terms);
-        Utils.setLocalStorage(this.STORAGE_KEYS.STUDENTS, data.students);
-        Utils.setLocalStorage(this.STORAGE_KEYS.CONFIGURATIONS, data.configurations);
-        Utils.setLocalStorage(this.STORAGE_KEYS.MARKS, data.marks);
+        const batch = firebase.firestore().batch();
+        const marksRef = firebase.firestore().collection("marks");
+
+        try {
+            // NOTE: Batching 'upsert' (check then update/create) is hard in one go without knowing IDs.
+            // For simplicity in this rapid migration, we'll just loop saveMark (imperfect but functional)
+            // OR we fetch all existing marks for this class/subject context first to minimize reads.
+
+            for (const mark of marksArray) {
+                await this.saveMark(mark);
+            }
+            return true;
+        } catch (e) {
+            console.error("Error saving marks batch:", e);
+            return false;
+        }
     }
 };
 
 // Initialize on load - make it synchronous
 if (typeof document !== 'undefined') {
-    // Initialize immediately (synchronous)
-    const data = DummyData.getAllData();
-    if (!localStorage.getItem('cmt_students')) {
-        localStorage.setItem('cmt_classes', JSON.stringify(data.classes));
-        localStorage.setItem('cmt_subjects', JSON.stringify(data.subjects));
-        localStorage.setItem('cmt_terms', JSON.stringify(data.terms));
-        localStorage.setItem('cmt_students', JSON.stringify(data.students));
-        localStorage.setItem('cmt_configurations', JSON.stringify(data.configurations));
-        localStorage.setItem('cmt_marks', JSON.stringify(data.marks));
-    }
+    // Only used for static init if needed
 }

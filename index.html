@@ -19,7 +19,7 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icon-192.png">
 
-    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="stylesheet" href="styles.css?v=5">
     <link rel="stylesheet" href="print-styles.css?v=2" media="print">
 </head>
 
@@ -32,9 +32,14 @@
                 <p class="subtitle">Your Digital Class Management Tool</p>
             </div>
         </div>
-        <button id="themeToggle" class="theme-toggle" aria-label="Switch Theme" title="Switch Theme">
-            🌙
-        </button>
+        <div style="display: flex; gap: 10px;">
+            <button id="logoutBtn" class="theme-toggle" aria-label="Logout" title="Logout">
+                🚪
+            </button>
+            <button id="themeToggle" class="theme-toggle" aria-label="Switch Theme" title="Switch Theme">
+                🌙
+            </button>
+        </div>
     </header>
 
     <!-- Navigation Tabs -->
@@ -135,6 +140,10 @@
                     <button class="btn btn-success" id="addStudentBtn">
                         <span>➕</span> Add Student
                     </button>
+                    <button class="btn btn-secondary" id="importStudentBtn" style="margin-left: 10px;">
+                        <span>📂</span> Import CSV
+                    </button>
+                    <input type="file" id="importStudentFile" accept=".csv" style="display: none;">
                 </div>
 
                 <!-- Filter -->
@@ -441,6 +450,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <!-- Firebase Config - Load before other scripts -->
+    <script src="firebase-config.js"></script>
 
     <!-- Application Scripts -->
     <script src="utils.js?v=2"></script>

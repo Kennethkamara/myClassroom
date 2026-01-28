@@ -216,6 +216,43 @@ const Utils = {
     },
 
     /**
+     * Smart round to nearest whole number
+     */
+    smartRound(value) {
+        const num = this.parseFloat(value);
+        return Math.round(num);
+    },
+
+    /**
+     * Parse CSV string to array of objects
+     * @param {string} csvText 
+     * @returns {Array} Array of objects
+     */
+    parseCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        if (lines.length < 2) return [];
+
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const result = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const currentLine = lines[i].trim();
+            if (!currentLine) continue;
+
+            // Simple split by comma (doesn't handle commas inside quotes well, but enough for simple names)
+            // For specified requirement, this is likely sufficient.
+            const values = currentLine.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+
+            const obj = {};
+            headers.forEach((header, index) => {
+                obj[header] = values[index] || '';
+            });
+            result.push(obj);
+        }
+        return result;
+    },
+
+    /**
      * Deep clone object
      */
     deepClone(obj) {
