@@ -69,7 +69,27 @@ const APIClient = {
      * Get all students (internal helper, mostly unused directly in UI)
      */
     async getStudents() {
-        return [];
+        if (!this.USE_FIREBASE) return [];
+
+        const user = firebase.auth().currentUser;
+        if (!user) return [];
+
+        try {
+            // Fetch ALL students for this teacher
+            const q = firebase.firestore().collection("students")
+                .where("teacher_id", "==", user.uid);
+
+            const querySnapshot = await q.get();
+            const students = [];
+            querySnapshot.forEach((doc) => {
+                students.push({ id: doc.id, ...doc.data() });
+            });
+            return students;
+        } catch (e) {
+            console.error("Error getting students: ", e);
+            Utils.showToast("Error loading students", "error");
+            return [];
+        }
     },
 
     /**
