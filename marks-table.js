@@ -411,7 +411,9 @@ const MarksTable = {
                 // Map names to student IDs
                 const nameMap = {};
                 this.currentStudents.forEach(s => {
-                    nameMap[s.name.toLowerCase()] = s.id;
+                    if (s.name) {
+                        nameMap[s.name.toLowerCase()] = s.id;
+                    }
                 });
 
                 let matchCount = 0;

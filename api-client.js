@@ -127,32 +127,7 @@ const APIClient = {
         }
     },
 
-    /**
-     * Get students for a specific class
-     */
-    async getStudentsByClass(className) {
-        if (!this.USE_FIREBASE) return [];
 
-        const user = firebase.auth().currentUser;
-        if (!user) return [];
-
-        try {
-            const q = firebase.firestore().collection("students")
-                .where("teacher_id", "==", user.uid)
-                .where("class_id", "==", className);
-
-            const querySnapshot = await q.get();
-            const students = [];
-            querySnapshot.forEach((doc) => {
-                students.push({ id: doc.id, ...doc.data() });
-            });
-            return students;
-        } catch (e) {
-            console.error("Error getting students: ", e);
-            Utils.showToast("Error loading students", "error");
-            return [];
-        }
-    },
 
     /**
      * Add a new student
