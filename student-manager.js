@@ -5,6 +5,7 @@
 
 const StudentManager = {
     currentStudents: [],
+    classes: [], // Store classes for lookup
     currentClassFilter: '',
     currentSearchTerm: '',
     editingStudentId: null,
@@ -24,6 +25,7 @@ const StudentManager = {
     async loadSelectOptions() {
         try {
             const classes = await APIClient.getClasses();
+            this.classes = classes; // Save for later use
 
             this.populateSelect('studentClassFilter', classes, true);
             this.populateSelect('studentClass', classes, false);
@@ -76,7 +78,10 @@ const StudentManager = {
         // Delete Class Button
         const deleteClassBtn = document.getElementById('deleteClassBtn');
         if (deleteClassBtn) {
-            deleteClassBtn.addEventListener('click', () => this.deleteCurrentClass());
+            deleteClassBtn.addEventListener('click', () => {
+                console.log("Delete Class Button Clicked!");
+                this.deleteCurrentClass();
+            });
         }
 
         // Class filter
