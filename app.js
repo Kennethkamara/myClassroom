@@ -67,6 +67,53 @@ const App = {
                 }
             });
         }
+
+        // PWA Install Prompt Logic
+        let deferredPrompt;
+        const installPromptEl = document.getElementById('installPrompt');
+        const installBtn = document.getElementById('installAcceptBtn');
+        const dismissBtn = document.getElementById('installDismissBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+
+            // Check if user has dismissed it recently (e.g., in last 24 hours)
+            const lastDismissed = localStorage.getItem('installPromptDismissed');
+            const now = Date.now();
+
+            if (!lastDismissed || (now - parseInt(lastDismissed) > 24 * 60 * 60 * 1000)) {
+                // Show the prompt
+                console.log("👋 Showing install prompt!");
+                if (installPromptEl) installPromptEl.style.display = 'flex';
+            }
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (installPromptEl) installPromptEl.style.display = 'none';
+                if (!deferredPrompt) return;
+
+                // Show the install prompt
+                deferredPrompt.prompt();
+
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+
+                deferredPrompt = null;
+            });
+        }
+
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', () => {
+                if (installPromptEl) installPromptEl.style.display = 'none';
+                // Save dismissal time
+                localStorage.setItem('installPromptDismissed', Date.now().toString());
+            });
+        }
     },
 
     async initializeApp() {
