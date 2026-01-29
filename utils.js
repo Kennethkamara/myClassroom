@@ -49,6 +49,50 @@ const Utils = {
     },
 
     /**
+     * Show custom confirmation modal
+     * Returns a Promise that resolves to true (Confirm) or false (Cancel)
+     */
+    showConfirm(message, title = "Confirm Action") {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('confirmModal');
+            const titleEl = document.getElementById('confirmModalTitle');
+            const msgEl = document.getElementById('confirmModalMessage');
+            const okBtn = document.getElementById('confirmOkBtn');
+            const cancelBtn = document.getElementById('confirmCancelBtn');
+
+            if (!modal || !okBtn || !cancelBtn) {
+                // Fallback if modal elements missing
+                const result = confirm(message);
+                resolve(result);
+                return;
+            }
+
+            titleEl.textContent = title;
+            msgEl.textContent = message;
+
+            // Show modal
+            modal.style.display = 'flex';
+
+            // Clean up listeners
+            const cleanup = () => {
+                okBtn.onclick = null;
+                cancelBtn.onclick = null;
+                modal.style.display = 'none';
+            };
+
+            okBtn.onclick = () => {
+                cleanup();
+                resolve(true);
+            };
+
+            cancelBtn.onclick = () => {
+                cleanup();
+                resolve(false);
+            };
+        });
+    },
+
+    /**
      * Get value from localStorage
      */
     getLocalStorage(key, defaultValue = null) {

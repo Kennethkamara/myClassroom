@@ -444,6 +444,23 @@
         </div>
     </div>
 
+    <!-- Confirm Modal -->
+    <div class="modal" id="confirmModal" style="z-index: 2000;">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header" style="justify-content: center; border-bottom: none;">
+                <h3 id="confirmModalTitle">Confirm Action</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage" style="font-size: 1.1rem; color: var(--text-primary);">Are you sure?</p>
+            </div>
+            <div class="modal-footer"
+                style="justify-content: center; gap: 15px; border-top: none; padding-bottom: 2rem;">
+                <button class="btn btn-secondary" id="confirmCancelBtn" style="min-width: 100px;">Cancel</button>
+                <button class="btn btn-primary" id="confirmOkBtn" style="min-width: 100px;">OK</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>

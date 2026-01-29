@@ -301,7 +301,7 @@ const StudentManager = {
      * Delete student
      */
     async deleteStudent(studentId) {
-        if (!confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+        if (!await Utils.showConfirm('Are you sure you want to delete this student? This action cannot be undone.', 'Delete Student')) {
             return;
         }
 
@@ -397,7 +397,7 @@ const StudentManager = {
                 }
 
                 if (validStudents.length > 0) {
-                    if (confirm(`Ready to import ${validStudents.length} students?`)) {
+                    if (await Utils.showConfirm(`Ready to import ${validStudents.length} students?`, 'Import Students')) {
                         Utils.showLoading();
                         await APIClient.importStudents(validStudents);
                         await this.loadStudents();
@@ -427,8 +427,8 @@ const StudentManager = {
 
         const className = this.classes.find(c => c.id === this.currentClassFilter)?.name || "Selected Class";
 
-        if (confirm(`Are you SURE you want to delete ALL students in ${className}? This cannot be undone.`)) {
-            if (confirm(`Please confirm AGAIN. Delete ALL ${className} students?`)) {
+        if (await Utils.showConfirm(`Are you SURE you want to delete ALL students in ${className}? This cannot be undone.`, 'Delete Class')) {
+            if (await Utils.showConfirm(`Please confirm AGAIN. Delete ALL ${className} students?`, 'Final Confirmation')) {
                 Utils.showLoading();
                 const success = await APIClient.deleteStudentsByClass(this.currentClassFilter);
                 if (success) {
