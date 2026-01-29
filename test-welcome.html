@@ -1,0 +1,41 @@
+<script>
+    // Test welcome animation - paste this into your browser console after logging in
+    const overlay = document.getElementById('loginSuccessOverlay');
+    const content = document.getElementById('successContent');
+
+    if (overlay && content) {
+        overlay.style.display = 'flex';
+
+        setTimeout(() => {
+            content.classList.add('success-animate');
+
+            // Create floating particles
+            const particles = ['✨', '⭐', '💫', '🌟', '⚡'];
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.textContent = particles[Math.floor(Math.random() * particles.length)];
+                particle.style.cssText = `
+                position: absolute;
+                font-size: ${Math.random() * 30 + 20}px;
+                left: ${Math.random() * 100}%;
+                top: ${Math.random() * 100}%;
+                opacity: 0;
+                pointer-events: none;
+            `;
+
+                overlay.appendChild(particle);
+
+                particle.animate([
+                    { opacity: 0, transform: 'translateY(0) scale(0.5) rotate(0deg)' },
+                    { opacity: 1, transform: 'translateY(-80px) scale(1.2) rotate(180deg)' },
+                    { opacity: 0, transform: 'translateY(-150px) scale(0.3) rotate(360deg)' }
+                ], {
+                    duration: 2500 + Math.random() * 1000,
+                    easing: 'ease-out'
+                });
+            }
+        }, 100);
+    } else {
+        console.log('Overlay not found! loginSuccessOverlay:', overlay, 'successContent:', content);
+    }
+</script>

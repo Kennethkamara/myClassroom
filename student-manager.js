@@ -7,6 +7,7 @@ const StudentManager = {
     currentStudents: [],
     classes: [], // Store classes for lookup
     currentClassFilter: '',
+    currentGenderFilter: '',
     currentSearchTerm: '',
     editingStudentId: null,
 
@@ -93,6 +94,15 @@ const StudentManager = {
             });
         }
 
+        // Gender filter
+        const genderFilter = document.getElementById('studentGenderFilter');
+        if (genderFilter) {
+            genderFilter.addEventListener('change', (e) => {
+                this.currentGenderFilter = e.target.value;
+                this.renderStudentsTable();
+            });
+        }
+
         // Search
         const searchInput = document.getElementById('studentSearch');
         if (searchInput) {
@@ -116,6 +126,28 @@ const StudentManager = {
         const saveBtn = document.getElementById('saveStudentBtn');
         if (saveBtn) {
             saveBtn.addEventListener('click', () => this.saveStudent());
+        }
+    },
+
+    /**
+     * Update student gender (inline editing from table)
+     */
+    async updateStudentGender(studentId, newGender) {
+        try {
+            const student = this.currentStudents.find(s => s.id === studentId);
+            if (!student) return;
+
+            await APIClient.updateStudent(studentId, {
+                name: student.name,
+                gender: newGender,
+                class_id: student.class_id
+            });
+
+            // Update local data
+            student.gender = newGender;
+        } catch (error) {
+            console.error('Error updating student gender:', error);
+            throw error;
         }
     },
 
@@ -157,17 +189,31 @@ const StudentManager = {
             filtered = filtered.filter(s => s.class_id === this.currentClassFilter);
         }
 
+        // Filter by gender
+        if (this.currentGenderFilter) {
+            filtered = filtered.filter(s => s.gender === this.currentGenderFilter);
+        }
+
         // Filter by search
         if (this.currentSearchTerm) {
             filtered = Utils.searchFilter(filtered, this.currentSearchTerm, ['name']);
         }
+
+        // Calculate and display counts
+        const maleCount = filtered.filter(s => s.gender === 'Male').length;
+        const femaleCount = filtered.filter(s => s.gender === 'Female').length;
+        const totalCount = filtered.length;
+
+        document.getElementById('maleCount').textContent = maleCount;
+        document.getElementById('femaleCount').textContent = femaleCount;
+        document.getElementById('totalCount').textContent = totalCount;
 
         // Sort by name
         filtered = Utils.sortBy(filtered, 'name', true);
 
         // Render
         if (filtered.length === 0) {
-            tbody.innerHTML = '<tr class="loading-row"><td colspan="4">No students found</td></tr>';
+            tbody.innerHTML = '<tr class="loading-row"><td colspan="5">No students found</td></tr>';
             return;
         }
 
@@ -177,6 +223,12 @@ const StudentManager = {
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${student.name}</td>
+                <td>
+                    <select class="form-control gender-select" data-student-id="${student.id}" data-old-gender="${student.gender || ''}" style="padding: 0.4rem; font-size: 0.9rem;">
+                        <option value="Male" ${student.gender === 'Male' ? 'selected' : ''}>♂️ Male</option>
+                        <option value="Female" ${student.gender === 'Female' ? 'selected' : ''}>♀️ Female</option>
+                    </select>
+                </td>
                 <td>${classMap[student.class_id] || 'Unknown'}</td>
                 <td>
                     <button class="btn btn-edit" onclick="StudentManager.editStudent('${student.id}')">
@@ -189,6 +241,53 @@ const StudentManager = {
             `;
             tbody.appendChild(row);
         });
+
+        // Add event listeners to gender dropdowns for inline editing
+        document.querySelectorAll('.gender-select').forEach(select => {
+            select.addEventListener('change', async (e) => {
+                const studentId = e.target.dataset.studentId;
+                const newGender = e.target.value;
+                const oldGender = e.target.dataset.oldGender || '';
+
+                try {
+                    await StudentManager.updateStudentGender(studentId, newGender);
+
+                    // Update old gender data attribute for next change
+                    e.target.dataset.oldGender = newGender;
+
+                    // Update counts in real-time WITHOUT re-rendering
+                    const maleCountEl = document.getElementById('maleCount');
+                    const femaleCountEl = document.getElementById('femaleCount');
+
+                    let maleCount = parseInt(maleCountEl.textContent);
+                    let femaleCount = parseInt(femaleCountEl.textContent);
+
+                    // Adjust counts based on change
+                    if (oldGender === 'Male' && newGender === 'Female') {
+                        maleCount--;
+                        femaleCount++;
+                    } else if (oldGender === 'Female' && newGender === 'Male') {
+                        femaleCount--;
+                        maleCount++;
+                    } else if (!oldGender && newGender === 'Male') {
+                        maleCount++;
+                    } else if (!oldGender && newGender === 'Female') {
+                        femaleCount++;
+                    }
+
+                    // Update display immediately
+                    maleCountEl.textContent = maleCount;
+                    femaleCountEl.textContent = femaleCount;
+
+                    Utils.showToast(`Gender updated to ${newGender === 'Male' ? '♂️ Male' : '♀️ Female'}`, 'success');
+                } catch (error) {
+                    Utils.showToast('Failed to update gender', 'error');
+                    console.error('Gender update error:', error);
+                    // Revert dropdown if failed
+                    e.target.value = oldGender;
+                }
+            });
+        });
     },
 
     /**
@@ -198,6 +297,7 @@ const StudentManager = {
         this.editingStudentId = null;
         document.getElementById('studentModalTitle').textContent = 'Add Student';
         document.getElementById('studentName').value = '';
+        document.getElementById('studentGender').value = '';
 
         // AUTO-SELECT CLASS FROM FILTER (bulk entry feature)
         const selectedClass = document.getElementById('studentClassFilter').value;
@@ -222,9 +322,10 @@ const StudentManager = {
         const student = this.currentStudents.find(s => s.id === studentId);
         if (!student) return;
 
-        this.editingStudentId = studentId;
+        this.editingStudentId = student.id;
         document.getElementById('studentModalTitle').textContent = 'Edit Student';
         document.getElementById('studentName').value = student.name;
+        document.getElementById('studentGender').value = student.gender || '';
         document.getElementById('studentClass').value = student.class_id;
 
         const modal = document.getElementById('studentModal');
@@ -249,6 +350,7 @@ const StudentManager = {
      */
     async saveStudent() {
         const name = document.getElementById('studentName').value.trim();
+        const gender = document.getElementById('studentGender').value;
         const classId = document.getElementById('studentClass').value;
 
         // Validation
@@ -258,8 +360,8 @@ const StudentManager = {
             return;
         }
 
-        if (!classId) {
-            Utils.showToast('Please select a class', 'error');
+        if (!gender) {
+            Utils.showToast('Please select gender', 'error');
             return;
         }
 
@@ -268,6 +370,7 @@ const StudentManager = {
 
             const studentData = {
                 name,
+                gender,
                 class_id: classId
             };
 
@@ -283,6 +386,7 @@ const StudentManager = {
 
                 // Clear name but KEEP class selected
                 document.getElementById('studentName').value = '';
+                document.getElementById('studentGender').value = '';
                 document.getElementById('studentName').focus();
 
                 // Don't close modal - allow adding more students

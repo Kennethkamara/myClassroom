@@ -169,15 +169,18 @@ const QuickEntry = {
             `Final: ${Utils.formatNumber(finalContribution, 2)} / ${testContribution} (${rawScore} + ${defaultAddedMark})`;
     },
 
+
     /**
      * Save quick entry
      */
     async saveQuickEntry() {
         const studentName = document.getElementById('quickStudentName').value.trim();
+        const gender = document.getElementById('quickGender').value;
         const rawScore = document.getElementById('quickRawScore').value;
 
         console.log('=== QUICK ENTRY SAVE ===');
         console.log('Student Name:', studentName);
+        console.log('Gender:', gender);
         console.log('Raw Score:', rawScore);
         console.log('Config:', this.currentConfig);
 
@@ -186,6 +189,13 @@ const QuickEntry = {
         if (!nameValidation.valid) {
             Utils.showToast(nameValidation.error, 'error');
             document.getElementById('quickStudentName').focus();
+            return;
+        }
+
+        // Validate gender
+        if (!gender) {
+            Utils.showToast('Please select gender', 'error');
+            document.getElementById('quickGender').focus();
             return;
         }
 
@@ -214,6 +224,7 @@ const QuickEntry = {
                 // Create new student
                 student = await APIClient.addStudent({
                     name: studentName,
+                    gender: gender,
                     class_id: this.selectedClass
                 });
                 console.log('New student created:', student);

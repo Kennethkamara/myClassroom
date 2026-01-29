@@ -19,7 +19,7 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icon-192.png">
 
-    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="styles.css?v=3">
     <link rel="stylesheet" href="print-styles.css?v=2" media="print">
 
     <!-- IMMEDIATE THEME CHECK (Prevents White Flash) -->
@@ -175,8 +175,22 @@
                             <option value="">All Classes</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="studentGenderFilter">Filter by Gender</label>
+                        <select id="studentGenderFilter" class="form-control">
+                            <option value="">All Genders</option>
+                            <option value="Male">♂️ Male</option>
+                            <option value="Female">♀️ Female</option>
+                        </select>
+                    </div>
                     <div class="search-box">
                         <input type="text" id="studentSearch" class="form-control" placeholder="🔍 Search students...">
+                    </div>
+                    <div class="student-stats"
+                        style="display: flex; gap: 1rem; align-items: center; margin-left: auto; font-weight: 600;">
+                        <span style="color: var(--primary-blue);">♂️ Male: <span id="maleCount">0</span></span>
+                        <span style="color: var(--accent-pink);">♀️ Female: <span id="femaleCount">0</span></span>
+                        <span style="color: var(--text-primary);">Total: <span id="totalCount">0</span></span>
                     </div>
                 </div>
 
@@ -187,13 +201,14 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Student Name</th>
+                                <th>Gender</th>
                                 <th>Class</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTableBody">
                             <tr class="loading-row">
-                                <td colspan="4">Loading students...</td>
+                                <td colspan="5">Loading students...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -248,7 +263,17 @@
                                 <label for="quickStudentName">Student Name</label>
                                 <input type="text" id="quickStudentName" class="form-control"
                                     placeholder="Enter student name" autocomplete="off" required>
-                                <small class="form-hint">Press Tab to move to score field</small>
+                                <small class="form-hint">Press Tab to move to gender field</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="quickGender">Gender</label>
+                                <select id="quickGender" class="form-control" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">♂️ Male</option>
+                                    <option value="Female">♀️ Female</option>
+                                </select>
+                                <small class="form-hint">Select student's gender</small>
                             </div>
 
                             <div class="form-group">
@@ -449,6 +474,14 @@
                     <input type="text" id="studentName" class="form-control" placeholder="Enter student name" required>
                 </div>
                 <div class="form-group">
+                    <label for="studentGender">Gender</label>
+                    <select id="studentGender" class="form-control" required>
+                        <option value="">Select Gender</option>
+                        <option value="Male">♂️ Male</option>
+                        <option value="Female">♀️ Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="studentClass">Class</label>
                     <select id="studentClass" class="form-control" required>
                         <option value="">Select Class</option>
@@ -511,6 +544,39 @@
     <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- Logout Goodbye Overlay -->
+    <div id="logoutOverlay"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); display: none; z-index: 10000; align-items: center; justify-content: center; flex-direction: column; color: white;">
+        <div style="text-align: center; transform: scale(0.8); opacity: 0;" id="logoutContent">
+            <div style="font-size: 6rem; margin-bottom: 1rem;">👋</div>
+            <h1 style="font-size: 3rem; margin: 0; font-weight: bold;">See You Soon!</h1>
+            <p style="font-size: 1.3rem; margin-top: 0.5rem; opacity: 0.9;">Logging you out...</p>
+        </div>
+    </div>
+
+    <style>
+        @keyframes goodbyeZoomIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .goodbye-animate {
+            animation: goodbyeZoomIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+        }
+    </style>
+
     <!-- External Libraries -->
     <!-- Use xlsx-js-style for styling support (borders, colors) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
@@ -537,7 +603,7 @@
     <script src="marks-table.js"></script>
     <script src="quick-entry.js"></script>
     <script src="export-handler.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=20260129"></script>
 
     <!-- PWA Service Worker Registration -->
     <script>

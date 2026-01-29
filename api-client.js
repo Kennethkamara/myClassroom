@@ -357,45 +357,46 @@ const APIClient = {
         } catch (e) {
             console.error("Error saving marks batch:", e);
             return false;
-        },
+        }
+    },
 
     /**
      * Delete all students in a class
      */
     async deleteStudentsByClass(classId) {
-            if (!this.USE_FIREBASE) return false;
+        if (!this.USE_FIREBASE) return false;
 
-            const user = firebase.auth().currentUser;
-            if (!user) return false;
+        const user = firebase.auth().currentUser;
+        if (!user) return false;
 
-            try {
-                const batch = firebase.firestore().batch();
-                const studentsRef = firebase.firestore().collection("students");
+        try {
+            const batch = firebase.firestore().batch();
+            const studentsRef = firebase.firestore().collection("students");
 
-                // Note: This requires a composite index on teacher_id + class_id
-                const q = studentsRef
-                    .where("teacher_id", "==", user.uid)
-                    .where("class_id", "==", classId);
+            // Note: This requires a composite index on teacher_id + class_id
+            const q = studentsRef
+                .where("teacher_id", "==", user.uid)
+                .where("class_id", "==", classId);
 
-                const snapshot = await q.get();
+            const snapshot = await q.get();
 
-                if (snapshot.empty) return true; // Nothing to delete
+            if (snapshot.empty) return true; // Nothing to delete
 
-                snapshot.docs.forEach((doc) => {
-                    batch.delete(doc.ref);
-                });
+            snapshot.docs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
 
-                await batch.commit();
-                return true;
-            } catch (e) {
-                console.error("Error deleting students by class:", e);
-                Utils.showToast("Error deleting: " + e.message, "error");
-                return false;
-            }
+            await batch.commit();
+            return true;
+        } catch (e) {
+            console.error("Error deleting students by class:", e);
+            Utils.showToast("Error deleting: " + e.message, "error");
+            return false;
         }
-    };
-
-    // Initialize on load - make it synchronous
-    if(typeof document !== 'undefined') {
-        // Only used for static init if needed
     }
+};
+
+// Initialize on load - make it synchronous
+if (typeof document !== 'undefined') {
+    // Only used for static init if needed
+}

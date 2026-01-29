@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - MyClassroom</title>
     <link rel="icon" type="image/png" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=3">
+    <link rel="stylesheet" href="styles.css?v=202601291455">
     <style>
         body {
             display: flex;
@@ -362,16 +362,49 @@
 
             firebase.auth().signInWithEmailAndPassword(email, password)
                 .then(() => {
+                    console.log('✅ Login successful!');
+
                     // Show success animation
                     const overlay = document.getElementById('loginSuccessOverlay');
                     const content = document.getElementById('successContent');
+
+                    console.log('🎬 Welcome overlay element:', overlay);
+                    console.log('📝 Content element:', content);
+
+                    if (!overlay) {
+                        console.error('❌ loginSuccessOverlay NOT FOUND!');
+                        window.location.href = "index.html";
+                        return;
+                    }
+
                     overlay.style.display = 'flex';
+                    console.log('🟢 Overlay display set to flex');
+
                     setTimeout(() => {
                         content.classList.add('success-animate');
+                        console.log('🎨 Animation class added');
+
+                        // ✨ CREATE FLOATING PARTICLES ✨
+                        const particles = ['✨', '⭐', '💫', '🌟', '⚡'];
+                        for (let i = 0; i < 20; i++) {
+                            const p = document.createElement('div');
+                            p.textContent = particles[Math.floor(Math.random() * particles.length)];
+                            p.style.cssText = `position:absolute;font-size:${Math.random() * 30 + 20}px;left:${Math.random() * 100}%;top:${Math.random() * 100}%;opacity:0;pointer-events:none;`;
+                            overlay.appendChild(p);
+                            p.animate([
+                                { opacity: 0, transform: 'translateY(0) rotate(0deg)' },
+                                { opacity: 1, transform: 'translateY(-80px) rotate(180deg)' },
+                                { opacity: 0, transform: 'translateY(-150px) rotate(360deg)' }
+                            ], { duration: 2500 + Math.random() * 1000, easing: 'ease-out' });
+                        }
+                        console.log('✨ 20 particles created and animating');
                     }, 50);
 
                     // Redirect after animation
-                    setTimeout(() => window.location.href = "index.html", 1500);
+                    setTimeout(() => {
+                        console.log('🚀 Redirecting to main app...');
+                        window.location.href = "index.html";
+                    }, 2500);
                 })
                 .catch(err => handleAuthError(err));
         });
@@ -394,10 +427,9 @@
                 .catch(err => handleAuthError(err));
         });
 
-        firebase.auth().onAuthStateChanged(user => {
-            if (user) window.location.href = "index.html";
-        });
+        // Auto-redirect disabled to show welcome animation
     </script>
 </body>
 
-</html>
+</html> 
+ 

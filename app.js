@@ -23,13 +23,48 @@ const App = {
             }
         });
 
-        // Logout handler
+        // Logout handler with animation
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => {
-                firebase.auth().signOut().then(() => {
-                    window.location.href = 'login.html';
-                });
+                console.log('🚪 Logout clicked!');
+                const overlay = document.getElementById('logoutOverlay');
+                const content = document.getElementById('logoutContent');
+                console.log('Overlay:', overlay, 'Content:', content);
+
+                if (overlay && content) {
+                    console.log('✅ Showing goodbye animation');
+
+                    // Reset overlay state
+                    overlay.style.display = 'flex';
+                    content.style.transform = 'scale(0.8)';
+                    content.style.opacity = '0';
+                    content.classList.remove('goodbye-animate');
+
+                    // Remove old particles
+                    const oldParticles = overlay.querySelectorAll('div:not(#logoutContent)');
+                    oldParticles.forEach(p => p.remove());
+
+                    setTimeout(() => {
+                        content.classList.add('goodbye-animate');
+                        // Fading wave particles
+                        const particles = ['👋', '✨', '💫', '⭐'];
+                        for (let i = 0; i < 15; i++) {
+                            const p = document.createElement('div');
+                            p.textContent = particles[Math.floor(Math.random() * particles.length)];
+                            p.style.cssText = `position:absolute;font-size:${Math.random() * 40 + 30}px;left:${Math.random() * 100}%;top:${Math.random() * 100}%;opacity:1;pointer-events:none;`;
+                            overlay.appendChild(p);
+                            p.animate([
+                                { opacity: 1, transform: 'scale(1)' },
+                                { opacity: 0, transform: 'scale(0.3)' }
+                            ], { duration: 2000, easing: 'ease-in' });
+                        }
+                    }, 50);
+                    setTimeout(() => firebase.auth().signOut().then(() => window.location.href = 'login.html'), 2000);
+                } else {
+                    console.log('❌ Overlay not found!');
+                    firebase.auth().signOut().then(() => window.location.href = 'login.html');
+                }
             });
         }
     },
