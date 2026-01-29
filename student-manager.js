@@ -409,8 +409,7 @@ const StudentManager = {
             }
         };
         reader.readAsText(file);
-    }
-},
+    },
 
     /**
      * Delete all students in the currently selected class
