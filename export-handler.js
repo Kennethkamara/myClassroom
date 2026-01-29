@@ -232,24 +232,8 @@ const ExportHandler = {
             // Create worksheet
             const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-            // Define Styles
-            const borderStyle = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
-            const headerStyle = {
-                font: { bold: true, color: { rgb: "FFFFFF" }, name: "Arial", sz: 12 },
-                fill: { fgColor: { rgb: "00A3E0" } }, // Brand Blue
-                alignment: { horizontal: "center", vertical: "center", wrapText: true },
-                border: borderStyle
-            };
-            const cellStyleLeft = {
-                font: { name: "Arial", sz: 11 },
-                alignment: { vertical: "center", horizontal: "left", wrapText: true },
-                border: borderStyle
-            };
-            const cellStyleCenter = {
-                font: { name: "Arial", sz: 11 },
-                alignment: { vertical: "center", horizontal: "center", wrapText: true },
-                border: borderStyle
-            };
+            // Base Styles using a function to avoid reference sharing
+            const getBorder = () => ({ top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } });
 
             // Apply Styles
             const range = XLSX.utils.decode_range(ws['!ref']);
@@ -258,18 +242,30 @@ const ExportHandler = {
                     const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
                     if (!ws[cell_address]) continue;
 
+                    // Create FRESH style object for every cell
+                    const style = {
+                        font: { name: "Arial", sz: 11 },
+                        border: getBorder(),
+                        alignment: { vertical: "center", wrapText: true }
+                    };
+
                     if (R === 0) {
-                        ws[cell_address].s = headerStyle;
-                        // Ensure header is always centered
-                        ws[cell_address].s.alignment = { horizontal: "center", vertical: "center", wrapText: true };
+                        // HEADER STYLE
+                        style.font = { bold: true, color: { rgb: "FFFFFF" }, name: "Arial", sz: 12 };
+                        style.fill = { fgColor: { rgb: "00A3E0" } };
+                        style.alignment.horizontal = "center";
                     } else {
-                        // Data Rows: Center metrics, Left align Text (Name)
+                        // DATA ROWS
                         if (C === 0) {
-                            ws[cell_address].s = cellStyleLeft;
+                            // Name - Left align
+                            style.alignment.horizontal = "left";
                         } else {
-                            ws[cell_address].s = cellStyleCenter;
+                            // Scores - Center align
+                            style.alignment.horizontal = "center";
                         }
                     }
+
+                    ws[cell_address].s = style;
                 }
             }
 
