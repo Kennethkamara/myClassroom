@@ -236,6 +236,10 @@
 
             firebase.auth().createUserWithEmailAndPassword(email, password)
                 .then(() => {
+                    // PARTY TIME! 🎉
+                    if (typeof Utils !== 'undefined' && Utils.triggerConfetti) {
+                        Utils.triggerConfetti();
+                    }
                     showModal("Success!", "Account created successfully. Logging you in...", true);
                     setTimeout(() => window.location.href = "index.html", 2000);
                 })

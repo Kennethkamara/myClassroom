@@ -160,17 +160,22 @@ const MarksTable = {
             return;
         }
 
-        this.currentStudents.forEach(student => {
+        this.currentStudents.forEach((student, index) => {
             const studentMarks = this.marksData[student.id] || { raw_score: 0, added_mark: 0 };
 
-            const row = document.createElement('tr');
-            row.dataset.studentId = student.id;
+            const tr = document.createElement('tr');
+            tr.dataset.studentId = student.id;
 
-            // Student name
-            const nameCell = document.createElement('td');
-            nameCell.className = 'readonly-cell';
-            nameCell.textContent = student.name;
-            row.appendChild(nameCell);
+            // Add staggered animation
+            tr.style.opacity = '0';
+            tr.classList.add('animate-fade-up');
+            tr.style.animationDelay = `${index * 0.03}s`; // 30ms stagger
+
+            // Student Name (Read-only)
+            const nameTd = document.createElement('td');
+            nameTd.textContent = student.name;
+            nameTd.classList.add('readonly-cell'); // Keep original class
+            tr.appendChild(nameTd);
 
             // Raw test score (editable)
             const rawScoreCell = document.createElement('td');
@@ -342,14 +347,16 @@ const MarksTable = {
 
             this.showSaveStatus('All changes saved', 'saved');
             Utils.hideLoading();
-            Utils.showToast('Marks saved successfully!', 'success');
 
-            // Clear status after 3 seconds
-            setTimeout(() => {
-                this.showSaveStatus('', '');
-            }, 3000);
+            // CELEBRATION TIME! 🎉
+            Utils.triggerConfetti();
+            Utils.showSuccessCheck();
+            Utils.showToast('All marks saved successfully!', 'success');
+
+            // Reload to reflect saved data
+            await this.loadMarks();
         } catch (error) {
-            console.error('Error saving marks:', error);
+            console.error('Error saving all marks:', error);
             this.showSaveStatus('Error saving', 'error');
             Utils.showToast('Error saving marks', 'error');
             Utils.hideLoading();

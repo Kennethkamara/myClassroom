@@ -359,6 +359,90 @@ const Utils = {
         void robot.offsetWidth; // Trigger reflow
 
         robot.classList.add('animate-fly');
+    },
+
+    /**
+     * Trigger Confetti Celebration
+     */
+    triggerConfetti() {
+        const canvas = document.getElementById('confettiCanvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.display = 'block';
+
+        const confetti = [];
+        const colors = ['#00A3E0', '#4DC3F7', '#FFD700', '#FF6B9D', '#C5F', '#00E676'];
+
+        for (let i = 0; i < 150; i++) {
+            confetti.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                r: Math.random() * 6 + 4,
+                d: Math.random() * 10 + 5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                tilt: Math.random() * 10 - 10,
+                tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+                tiltAngle: 0
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            confetti.forEach((c, i) => {
+                ctx.beginPath();
+                ctx.lineWidth = c.r / 2;
+                ctx.strokeStyle = c.color;
+                ctx.moveTo(c.x + c.tilt + c.r, c.y);
+                ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r);
+                ctx.stroke();
+
+                c.tiltAngle += c.tiltAngleIncremental;
+                c.y += (Math.cos(c.d) + 3 + c.r / 2) / 2;
+                c.x += Math.sin(c.d);
+                c.tilt = Math.sin(c.tiltAngle - i / 3) * 15;
+
+                if (c.y > canvas.height) confetti.splice(i, 1);
+            });
+
+            if (confetti.length > 0) requestAnimationFrame(draw);
+            else canvas.style.display = 'none';
+        }
+
+        draw();
+    },
+
+    /**
+     * Show Success Checkmark
+     */
+    showSuccessCheck() {
+        const check = document.getElementById('successCheck');
+        if (!check) return;
+
+        check.style.display = 'block';
+        const svg = check.querySelector('svg');
+        svg.style.animation = 'bounceIn 0.6s ease-out';
+
+        setTimeout(() => {
+            check.style.display = 'none';
+        }, 2000);
+    },
+
+    /**
+     * Shake Element (for errors)
+     */
+    shakeElement(elementId) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+
+        el.classList.remove('animate-shake');
+        void el.offsetWidth; // Trigger reflow
+        el.classList.add('animate-shake');
+
+        setTimeout(() => el.classList.remove('animate-shake'), 500);
     }
 };
 
