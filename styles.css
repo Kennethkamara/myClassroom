@@ -1177,27 +1177,42 @@ textarea {
 /* ========== Mobile Responsiveness (Phone) ========== */
 @media (max-width: 480px) {
 
-    /* Header Stacking */
+    /* Header Optimized - Single Row */
     .app-header {
-        flex-direction: column;
-        gap: var(--spacing-md);
-        padding: var(--spacing-md);
-        text-align: center;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        gap: 0;
     }
 
     .header-container {
-        align-items: center;
-        width: 100%;
+        width: auto;
+        align-items: flex-start;
+        flex: 1;
     }
 
+    /* Resize Logo */
     .header-logo {
-        height: 48px;
+        height: 36px;
     }
 
+    /* Hide long subtitle on mobile */
+    .header-text .subtitle {
+        display: none;
+    }
+
+    .header-text h1 {
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    /* Keep buttons to the right */
     .header-right {
-        width: 100%;
-        justify-content: center;
-        margin-top: var(--spacing-sm);
+        width: auto;
+        justify-content: flex-end;
+        margin-top: 0;
+        gap: 8px;
     }
 
     /* Navigation - Horizontal Scroll */
