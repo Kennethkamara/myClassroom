@@ -92,7 +92,7 @@ const MarksTable = {
         this.selectedTerm = document.getElementById('marksTerm').value;
 
         if (!this.selectedClass || !this.selectedSubject || !this.selectedTerm) {
-            Utils.showToast('Please select class, subject, and term', 'error');
+            Utils.triggerRobotAlert("BEEP BOOP! Select Class, Subject & Term first!");
             return;
         }
 

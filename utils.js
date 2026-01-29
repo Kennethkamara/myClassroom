@@ -342,6 +342,23 @@ const Utils = {
         const termStr = this.sanitizeFilename(term);
 
         return `${classStr}_${subjectStr}_${termStr}_${date}.${extension}`;
+    },
+
+    /**
+     * Trigger Flying Robot Alert
+     */
+    triggerRobotAlert(message) {
+        const robot = document.getElementById('flyingRobot');
+        const msgEl = document.getElementById('robotMessage');
+        if (!robot || !msgEl) return;
+
+        msgEl.textContent = message;
+
+        // Reset animation
+        robot.classList.remove('animate-fly');
+        void robot.offsetWidth; // Trigger reflow
+
+        robot.classList.add('animate-fly');
     }
 };
 

@@ -477,59 +477,68 @@
                 <button class="btn btn-primary" id="confirmOkBtn" style="min-width: 100px;">OK</button>
             </div>
         </div>
-    </div>
+        <!-- Flying Robot Notification -->
+        <div id="flyingRobot"
+            style="position: fixed; top: 20%; left: -300px; z-index: 9999; display: flex; align-items: center; gap: 10px; pointer-events: none;">
+            <div style="font-size: 4rem;">🤖</div>
+            <div id="robotMessage"
+                style="background: var(--error); color: white; padding: 1rem 1.5rem; border-radius: 20px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 1.1rem; border: 2px solid white;">
+                Message Here
+            </div>
+        </div>
 
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <p>Loading...</p>
-    </div>
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
 
-    <!-- Toast Notifications -->
-    <div class="toast-container" id="toastContainer"></div>
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toastContainer"></div>
 
-    <!-- External Libraries -->
-    <!-- Use xlsx-js-style for styling support (borders, colors) -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+        <!-- External Libraries -->
+        <!-- Use xlsx-js-style for styling support (borders, colors) -->
+        <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
-    <!-- Firebase SDK (Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
-    <!-- Firebase Config - Load before other scripts -->
-    <script src="firebase-config.js"></script>
+        <!-- Firebase SDK (Compat) -->
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+        <!-- Firebase Config - Load before other scripts -->
+        <script src="firebase-config.js"></script>
 
-    <!-- Application Scripts -->
-    <script src="utils.js?v=2"></script>
-    <script src="dummy-data.js"></script>
-    <script src="google-sheets-api.js?v=2"></script>
-    <script src="api-client.js?v=2"></script>
-    <script src="validators.js?v=2"></script>
-    <script src="theme-manager.js?v=1"></script>
-    <script src="config-manager.js?v=2"></script>
-    <script src="student-manager.js"></script>
-    <script src="marks-table.js"></script>
-    <script src="quick-entry.js"></script>
-    <script src="export-handler.js"></script>
-    <script src="app.js"></script>
+        <!-- Application Scripts -->
+        <script src="utils.js?v=2"></script>
+        <script src="dummy-data.js"></script>
+        <script src="google-sheets-api.js?v=2"></script>
+        <script src="api-client.js?v=2"></script>
+        <script src="validators.js?v=2"></script>
+        <script src="theme-manager.js?v=1"></script>
+        <script src="config-manager.js?v=2"></script>
+        <script src="student-manager.js"></script>
+        <script src="marks-table.js"></script>
+        <script src="quick-entry.js"></script>
+        <script src="export-handler.js"></script>
+        <script src="app.js"></script>
 
-    <!-- PWA Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker registered:', registration);
-                    })
-                    .catch(error => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
-        }
-    </script>
+        <!-- PWA Service Worker Registration -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/service-worker.js')
+                        .then(registration => {
+                            console.log('Service Worker registered:', registration);
+                        })
+                        .catch(error => {
+                            console.log('Service Worker registration failed:', error);
+                        });
+                });
+            }
+        </script>
 </body>
 
 </html>
