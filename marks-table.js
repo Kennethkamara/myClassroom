@@ -139,9 +139,10 @@ const MarksTable = {
             document.getElementById('marksEmptyState').style.display = 'none';
 
             Utils.hideLoading();
+            Utils.hideLoading();
         } catch (error) {
             console.error('Error loading marks:', error);
-            Utils.showToast('Error loading marks', 'error');
+            Utils.showToast('Error loading marks. Please check your connection or try again.', 'error');
             Utils.hideLoading();
         }
     },

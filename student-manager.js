@@ -134,21 +134,70 @@ const StudentManager = {
      */
     async updateStudentGender(studentId, newGender) {
         try {
-            const student = this.currentStudents.find(s => s.id === studentId);
-            if (!student) return;
+            const studentIndex = this.currentStudents.findIndex(s => s.id === studentId);
+            if (studentIndex === -1) return;
+
+            // Optimistic update
+            const oldGender = this.currentStudents[studentIndex].gender;
+            this.currentStudents[studentIndex].gender = newGender;
+
+            // Recalculate counts immediately based on source of truth
+            this.updateGenderCounts();
 
             await APIClient.updateStudent(studentId, {
-                name: student.name,
+                name: this.currentStudents[studentIndex].name,
                 gender: newGender,
-                class_id: student.class_id
+                class_id: this.currentStudents[studentIndex].class_id
             });
 
-            // Update local data
-            student.gender = newGender;
+            Utils.showToast(`Gender updated to ${newGender === 'Male' ? '♂️ Male' : '♀️ Female'}`, 'success');
         } catch (error) {
             console.error('Error updating student gender:', error);
-            throw error;
+            // Revert optimistic update
+            const studentIndex = this.currentStudents.findIndex(s => s.id === studentId);
+            if (studentIndex !== -1) {
+                // We'd ideally need the old value passed in or stored, but simpler to just reload or let user try again.
+                // For now, let's just warn.
+            }
+            Utils.showToast('Failed to update gender', 'error');
+            // Reload to ensure consistency
+            this.loadStudents();
         }
+    },
+
+    /**
+     * Helper to update gender counts from currentStudents
+     */
+    updateGenderCounts() {
+        // We need to respect the current filters effectively
+        // Actually, the main "Total" usually refers to the CURRENT filtered view.
+        // Let's re-use the logic from renderStudentsTable roughly or just operate on current visible if possible.
+        // However, rendersStudentsTable filters `this.currentStudents`.
+
+        // To be safe and consistent with UI, we should probably just re-run the calculation logic
+        // that renderStudentsTable uses, BUT avoiding full re-render if possible.
+        // The previous implementation tried to parse DOM. 
+
+        // Let's filter like renderStudentsTable does:
+        let filtered = [...this.currentStudents];
+
+        if (this.currentClassFilter) {
+            filtered = filtered.filter(s => s.class_id === this.currentClassFilter);
+        }
+        if (this.currentGenderFilter) {
+            filtered = filtered.filter(s => s.gender === this.currentGenderFilter);
+        }
+        if (this.currentSearchTerm) {
+            filtered = Utils.searchFilter(filtered, this.currentSearchTerm, ['name']);
+        }
+
+        const maleCount = filtered.filter(s => s.gender === 'Male').length;
+        const femaleCount = filtered.filter(s => s.gender === 'Female').length;
+        const totalCount = filtered.length;
+
+        document.getElementById('maleCount').textContent = maleCount;
+        document.getElementById('femaleCount').textContent = femaleCount;
+        document.getElementById('totalCount').textContent = totalCount;
     },
 
     /**
@@ -244,48 +293,10 @@ const StudentManager = {
 
         // Add event listeners to gender dropdowns for inline editing
         document.querySelectorAll('.gender-select').forEach(select => {
-            select.addEventListener('change', async (e) => {
+            select.addEventListener('change', (e) => {
                 const studentId = e.target.dataset.studentId;
                 const newGender = e.target.value;
-                const oldGender = e.target.dataset.oldGender || '';
-
-                try {
-                    await StudentManager.updateStudentGender(studentId, newGender);
-
-                    // Update old gender data attribute for next change
-                    e.target.dataset.oldGender = newGender;
-
-                    // Update counts in real-time WITHOUT re-rendering
-                    const maleCountEl = document.getElementById('maleCount');
-                    const femaleCountEl = document.getElementById('femaleCount');
-
-                    let maleCount = parseInt(maleCountEl.textContent);
-                    let femaleCount = parseInt(femaleCountEl.textContent);
-
-                    // Adjust counts based on change
-                    if (oldGender === 'Male' && newGender === 'Female') {
-                        maleCount--;
-                        femaleCount++;
-                    } else if (oldGender === 'Female' && newGender === 'Male') {
-                        femaleCount--;
-                        maleCount++;
-                    } else if (!oldGender && newGender === 'Male') {
-                        maleCount++;
-                    } else if (!oldGender && newGender === 'Female') {
-                        femaleCount++;
-                    }
-
-                    // Update display immediately
-                    maleCountEl.textContent = maleCount;
-                    femaleCountEl.textContent = femaleCount;
-
-                    Utils.showToast(`Gender updated to ${newGender === 'Male' ? '♂️ Male' : '♀️ Female'}`, 'success');
-                } catch (error) {
-                    Utils.showToast('Failed to update gender', 'error');
-                    console.error('Gender update error:', error);
-                    // Revert dropdown if failed
-                    e.target.value = oldGender;
-                }
+                this.updateStudentGender(studentId, newGender);
             });
         });
     },

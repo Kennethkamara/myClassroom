@@ -239,6 +239,29 @@ body {
     /* margin: 0 auto; Removed to prevent conflict with parent flex space-between */
 }
 
+@media (max-width: 768px) {
+    .app-header {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+    }
+
+    .header-container {
+        align-items: center;
+        text-align: center;
+        width: 100%;
+    }
+
+    .header-text {
+        align-items: center;
+    }
+
+    .header-logo {
+        height: 50px;
+        margin-bottom: 5px;
+    }
+}
+
 .header-logo {
     height: 60px;
     width: auto;
@@ -777,6 +800,28 @@ textarea {
 
 .search-box {
     flex: 1;
+    min-width: 200px;
+}
+
+@media (max-width: 768px) {
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+
+    .filter-bar .form-group {
+        flex: 1;
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .student-stats {
+        margin-left: 0;
+        justify-content: space-between;
+        margin-top: var(--spacing-sm);
+        font-size: 0.9rem;
+    }
 }
 
 /* ========== Export Options ========== */
