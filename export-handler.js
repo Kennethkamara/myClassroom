@@ -348,13 +348,25 @@ const ExportHandler = {
                 body: tableData,
                 startY: 60,
                 theme: 'grid',
-                headStyles: { fillColor: [44, 90, 160] },
-                styles: { fontSize: 10 }
+                headStyles: { fillColor: [0, 163, 224] }, // Brand Blue
+                styles: { fontSize: 10, halign: 'center' },
+                columnStyles: { 0: { halign: 'left' } } // Name left aligned
             });
 
             // Download
             const filename = Utils.generateExportFilename(className, subjectName, termName, 'pdf');
-            doc.save(filename);
+            console.log("Exporting PDF as:", filename);
+
+            // Manual Download for reliability
+            const pdfBlob = doc.output('blob');
+            const url = URL.createObjectURL(pdfBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
 
             Utils.showToast('PDF file downloaded!', 'success');
         } catch (error) {
