@@ -240,9 +240,14 @@ const ExportHandler = {
                 alignment: { horizontal: "center", vertical: "center", wrapText: true },
                 border: borderStyle
             };
-            const cellStyle = {
+            const cellStyleLeft = {
                 font: { name: "Arial", sz: 11 },
-                alignment: { vertical: "center", wrapText: true },
+                alignment: { vertical: "center", horizontal: "left", wrapText: true },
+                border: borderStyle
+            };
+            const cellStyleCenter = {
+                font: { name: "Arial", sz: 11 },
+                alignment: { vertical: "center", horizontal: "center", wrapText: true },
                 border: borderStyle
             };
 
@@ -255,8 +260,15 @@ const ExportHandler = {
 
                     if (R === 0) {
                         ws[cell_address].s = headerStyle;
+                        // Ensure header is always centered
+                        ws[cell_address].s.alignment = { horizontal: "center", vertical: "center", wrapText: true };
                     } else {
-                        ws[cell_address].s = cellStyle;
+                        // Data Rows: Center metrics, Left align Text (Name)
+                        if (C === 0) {
+                            ws[cell_address].s = cellStyleLeft;
+                        } else {
+                            ws[cell_address].s = cellStyleCenter;
+                        }
                     }
                 }
             }
