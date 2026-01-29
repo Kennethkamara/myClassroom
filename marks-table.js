@@ -466,50 +466,66 @@ const MarksTable = {
                         const studentId = nameMap[name];
 
                         if (studentId) {
+                            // Ensure structure exists
                             if (!this.marksData[studentId]) {
-                                // Default added mark to MAX (e.g. 20) as per user request
-                                // "if i hadn't figured it" implies they expect full credit by default
-                                this.marksData[studentId] = {
-                                    raw_score: 0,
-                                    added_mark: this.currentConfig.max_added_marks || 20
-                                };
+                                this.marksData[studentId] = { raw_score: 0, added_mark: 0 };
                             }
+
+                            // 1. RAW SCORE
                             if (rawKey && row[rawKey]) {
                                 const val = parseFloat(row[rawKey]);
                                 if (!isNaN(val)) this.marksData[studentId].raw_score = val;
                             }
+
+                            // 2. ADDED MARK
                             if (addedKey && row[addedKey]) {
                                 const val = parseFloat(row[addedKey]);
-                                if (!isNaN(val)) this.marksData[studentId].added_mark = val;
+                                if (!isNaN(val)) {
+                                    this.marksData[studentId].added_mark = val;
+                                }
+                            } else {
+                                // If CSV column missing or empty, DEFAULT TO MAX
+                                // We trust "added_mark" is 0 if not set, so checking if falsy is okay, 
+                                // but specifically check for 0 or undefined to avoid overwriting real edits if possible (though import implies override).
+                                // Actually, simpler rule: If key missing -> Default to Max.
+                                if (!this.marksData[studentId].added_mark) {
+                                    this.marksData[studentId].added_mark = this.currentConfig.max_added_marks || 20;
+                                }
                             }
                             matchCount++;
                         }
+                        if (addedKey && row[addedKey]) {
+                            const val = parseFloat(row[addedKey]);
+                            if (!isNaN(val)) this.marksData[studentId].added_mark = val;
+                        }
+                        matchCount++;
                     }
+                }
                 });
 
-                // 4. Sort table to match CSV order
-                // We create a map of name -> index in CSV
-                const orderMap = {};
-                csvNamesOrder.forEach((name, index) => {
-                    orderMap[name] = index;
-                });
+            // 4. Sort table to match CSV order
+            // We create a map of name -> index in CSV
+            const orderMap = {};
+            csvNamesOrder.forEach((name, index) => {
+                orderMap[name] = index;
+            });
 
-                // Sort existing students: CSV names first (in order), then others
-                this.currentStudents.sort((a, b) => {
-                    const indexA = orderMap[a.name.toLowerCase()] !== undefined ? orderMap[a.name.toLowerCase()] : 999999;
-                    const indexB = orderMap[b.name.toLowerCase()] !== undefined ? orderMap[b.name.toLowerCase()] : 999999;
-                    return indexA - indexB;
-                });
+            // Sort existing students: CSV names first (in order), then others
+            this.currentStudents.sort((a, b) => {
+                const indexA = orderMap[a.name.toLowerCase()] !== undefined ? orderMap[a.name.toLowerCase()] : 999999;
+                const indexB = orderMap[b.name.toLowerCase()] !== undefined ? orderMap[b.name.toLowerCase()] : 999999;
+                return indexA - indexB;
+            });
 
-                this.renderMarksTable();
-                Utils.showToast(`Imported marks for ${matchCount} students. Click 'Save All Marks' to persist.`, 'success');
+            this.renderMarksTable();
+            Utils.showToast(`Imported marks for ${matchCount} students. Click 'Save All Marks' to persist.`, 'success');
 
-            } catch (error) {
-                console.error('Error importing marks:', error);
-                Utils.showToast('Error parsing CSV', 'error');
-                Utils.hideLoading();
-            }
-        };
-        reader.readAsText(file);
-    }
+        } catch (error) {
+            console.error('Error importing marks:', error);
+            Utils.showToast('Error parsing CSV', 'error');
+            Utils.hideLoading();
+        }
+    };
+    reader.readAsText(file);
+}
 };
