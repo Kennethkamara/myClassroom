@@ -410,4 +410,29 @@ const StudentManager = {
         };
         reader.readAsText(file);
     }
+},
+
+    /**
+     * Delete all students in the currently selected class
+     */
+    async deleteCurrentClass() {
+        if (!this.currentClassFilter) {
+            Utils.showToast("Please select a class filter first to delete all students in it.", "warning");
+            return;
+        }
+
+        const className = this.classes.find(c => c.id === this.currentClassFilter)?.name || "Selected Class";
+
+        if (confirm(`Are you SURE you want to delete ALL students in ${className}? This cannot be undone.`)) {
+            if (confirm(`Please confirm AGAIN. Delete ALL ${className} students?`)) {
+                Utils.showLoading();
+                const success = await APIClient.deleteStudentsByClass(this.currentClassFilter);
+                if (success) {
+                    Utils.showToast("Class deleted successfully.", "success");
+                    await this.loadStudents();
+                }
+                Utils.hideLoading();
+            }
+        }
+    }
 };
