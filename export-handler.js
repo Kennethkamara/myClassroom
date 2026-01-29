@@ -277,12 +277,27 @@ const ExportHandler = {
             ];
 
             // Create workbook
+            // Create workbook
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Marks');
 
-            // Download
+            // Generate Filename
             const filename = Utils.generateExportFilename(className, subjectName, termName, 'xlsx');
-            XLSX.writeFile(wb, filename);
+            console.log("Exporting Excel as:", filename);
+
+            // Write to Blob and Download Manually (More reliable for filenames)
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/octet-stream' });
+
+            // Use Utils to trigger download
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
 
             Utils.showToast('Excel file downloaded!', 'success');
         } catch (error) {
