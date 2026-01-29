@@ -457,8 +457,9 @@ const MarksTable = {
                     const nameKey = keys.find(k => k.toLowerCase().includes('name'));
 
                     // Mark Columns
+                    // Mark Columns
                     const rawKey = keys.find(k => k.toLowerCase().includes('raw') || k.toLowerCase().includes('test') || k.toLowerCase().includes('score'));
-                    const addedKey = keys.find(k => k.toLowerCase().includes('added') || k.toLowerCase().includes('exam') || k.toLowerCase().includes('bonus'));
+                    const addedKey = keys.find(k => k.toLowerCase().includes('added') || k.toLowerCase().includes('exam') || k.toLowerCase().includes('bonus') || k.toLowerCase().includes('ass') || k.toLowerCase().includes('class') || k.includes('20'));
 
                     if (nameKey && row[nameKey]) {
                         const name = row[nameKey].trim().toLowerCase();
