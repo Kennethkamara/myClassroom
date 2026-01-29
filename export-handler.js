@@ -232,11 +232,40 @@ const ExportHandler = {
             // Create worksheet
             const ws = XLSX.utils.aoa_to_sheet(wsData);
 
+            // Define Styles
+            const borderStyle = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+            const headerStyle = {
+                font: { bold: true, color: { rgb: "FFFFFF" }, name: "Arial", sz: 12 },
+                fill: { fgColor: { rgb: "00A3E0" } }, // Brand Blue
+                alignment: { horizontal: "center", vertical: "center", wrapText: true },
+                border: borderStyle
+            };
+            const cellStyle = {
+                font: { name: "Arial", sz: 11 },
+                alignment: { vertical: "center", wrapText: true },
+                border: borderStyle
+            };
+
+            // Apply Styles
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cell_address]) continue;
+
+                    if (R === 0) {
+                        ws[cell_address].s = headerStyle;
+                    } else {
+                        ws[cell_address].s = cellStyle;
+                    }
+                }
+            }
+
             // Set column widths
             ws['!cols'] = [
-                { wch: 30 }, // Student Name
-                { wch: 15 }, // Raw Test Score
-                { wch: 30 }  // Final Contribution
+                { wch: 35 }, // Student Name
+                { wch: 20 }, // Raw Test Score
+                { wch: 35 }  // Final Contribution
             ];
 
             // Create workbook
