@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - MyClassroom</title>
     <link rel="icon" type="image/png" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=3">
     <style>
         body {
             display: flex;
@@ -85,11 +85,81 @@
         .btn-secondary:hover {
             background: var(--bg-surface-alt);
         }
+
+        /* Animation for login card */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* TEST: Continuous pulse to verify animations work */
+        @keyframes testPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(0, 163, 224, 0);
+            }
+
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 0 30px 10px rgba(0, 163, 224, 0.5);
+            }
+        }
+
+
+        /* PULSE GLOW ANIMATION - Continuous breathing effect */
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 10px 40px rgba(0, 163, 224, 0.2),
+                    0 0 0 0 rgba(0, 163, 224, 0);
+            }
+
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 10px 60px rgba(0, 163, 224, 0.4),
+                    0 0 30px 10px rgba(0, 163, 224, 0.3);
+            }
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
     </style>
+
+    <script>
+        // Force animation to play on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const card = document.querySelector('.login-card');
+            if (card) {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100);
+            }
+        });
+    </script>
 </head>
 
 <body>
-    <div class="login-card animate-fade-up">
+    <div class="login-card pulse-glow">
         <img src="icon-192.png" alt="Logo" class="login-logo">
         <h1 class="login-title">Welcome Back</h1>
         <p class="login-subtitle">Sign in to MyClassroom</p>
@@ -141,12 +211,79 @@
         </div>
     </div>
 
+    <!-- Login Success Overlay -->
+    <div id="loginSuccessOverlay"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #00A3E0, #4DC3F7); display: none; z-index: 10000; align-items: center; justify-content: center; flex-direction: column; color: white;">
+        <div style="text-align: center; transform: scale(0.8); opacity: 0;" id="successContent">
+            <div style="font-size: 5rem; margin-bottom: 1rem;">✨</div>
+            <h1 style="font-size: 3rem; margin: 0; font-weight: bold;">Welcome Back!</h1>
+            <p style="font-size: 1.3rem; margin-top: 0.5rem; opacity: 0.9;">Logging you in...</p>
+            <div style="margin-top: 2rem;">
+                <div class="spinner"
+                    style="border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes successZoomIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-animate {
+            animation: successZoomIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+        }
+    </style>
+
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
     <script src="firebase-config.js"></script>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confettiCanvas"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; display: none;"></canvas>
+
+    <!-- Success Checkmark -->
+    <div id="successCheck"
+        style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9997; display: none; pointer-events: none;">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="#4CAF50" opacity="0.9" />
+            <path d="M 30 50 L 45 65 L 70 35" stroke="white" stroke-width="8" fill="none" stroke-linecap="round"
+                stroke-linejoin="round" class="success-checkmark" />
+        </svg>
+    </div>
+
+    <!-- Utils for animations -->
+    <script src="utils.js"></script>
+
     <script>
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
@@ -224,7 +361,18 @@
             if (!email || !password) return showModal("Missing Info", "Please enter both email and password.");
 
             firebase.auth().signInWithEmailAndPassword(email, password)
-                .then(() => window.location.href = "index.html")
+                .then(() => {
+                    // Show success animation
+                    const overlay = document.getElementById('loginSuccessOverlay');
+                    const content = document.getElementById('successContent');
+                    overlay.style.display = 'flex';
+                    setTimeout(() => {
+                        content.classList.add('success-animate');
+                    }, 50);
+
+                    // Redirect after animation
+                    setTimeout(() => window.location.href = "index.html", 1500);
+                })
                 .catch(err => handleAuthError(err));
         });
 
