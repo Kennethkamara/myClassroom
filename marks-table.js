@@ -467,7 +467,12 @@ const MarksTable = {
 
                         if (studentId) {
                             if (!this.marksData[studentId]) {
-                                this.marksData[studentId] = { raw_score: 0, added_mark: 0 };
+                                // Default added mark to MAX (e.g. 20) as per user request
+                                // "if i hadn't figured it" implies they expect full credit by default
+                                this.marksData[studentId] = {
+                                    raw_score: 0,
+                                    added_mark: this.currentConfig.max_added_marks || 20
+                                };
                             }
                             if (rawKey && row[rawKey]) {
                                 const val = parseFloat(row[rawKey]);
