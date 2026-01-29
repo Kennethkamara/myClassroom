@@ -8,6 +8,8 @@
     /* Hide non-printable elements */
     .app-header,
     .tab-navigation,
+    .tab-content,
+    /* Hides all main app views including H2 titles */
     .btn,
     .modal,
     .loading-overlay,
@@ -43,12 +45,21 @@
         margin-bottom: 20px;
         border-bottom: 2px solid #000;
         padding-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .print-logo {
+        height: 80px;
+        /* Occupies a bit of space */
+        width: auto;
+        margin-bottom: 10px;
     }
 
     .print-header h1 {
-        font-size: 20pt;
-        margin-bottom: 10px;
-        color: #000;
+        display: none;
+        /* User wants logo INSTEAD of text title */
     }
 
     .print-info {
