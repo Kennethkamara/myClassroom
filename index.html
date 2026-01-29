@@ -21,6 +21,24 @@
 
     <link rel="stylesheet" href="styles.css?v=5">
     <link rel="stylesheet" href="print-styles.css?v=2" media="print">
+
+    <!-- IMMEDIATE THEME CHECK (Prevents White Flash) -->
+    <script>
+        (function () {
+            try {
+                const storedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+            } catch (e) {
+                console.error('Theme init error:', e);
+            }
+        })();
+    </script>
 </head>
 
 <body>
