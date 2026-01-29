@@ -430,7 +430,7 @@ const MarksTable = {
 
                 // 2. Add missing students if any
                 if (newStudents.length > 0) {
-                    if (confirm(`Found ${newStudents.length} new students in CSV. Add them to this class?`)) {
+                    if (await Utils.showConfirm(`Found ${newStudents.length} new students in CSV. Add them to this class?`, 'Import New Students')) {
                         Utils.showLoading();
                         for (const name of newStudents) {
                             await APIClient.addStudent({
@@ -494,38 +494,32 @@ const MarksTable = {
                             }
                             matchCount++;
                         }
-                        if (addedKey && row[addedKey]) {
-                            const val = parseFloat(row[addedKey]);
-                            if (!isNaN(val)) this.marksData[studentId].added_mark = val;
-                        }
-                        matchCount++;
                     }
-                }
                 });
 
-            // 4. Sort table to match CSV order
-            // We create a map of name -> index in CSV
-            const orderMap = {};
-            csvNamesOrder.forEach((name, index) => {
-                orderMap[name] = index;
-            });
+                // 4. Sort table to match CSV order
+                // We create a map of name -> index in CSV
+                const orderMap = {};
+                csvNamesOrder.forEach((name, index) => {
+                    orderMap[name] = index;
+                });
 
-            // Sort existing students: CSV names first (in order), then others
-            this.currentStudents.sort((a, b) => {
-                const indexA = orderMap[a.name.toLowerCase()] !== undefined ? orderMap[a.name.toLowerCase()] : 999999;
-                const indexB = orderMap[b.name.toLowerCase()] !== undefined ? orderMap[b.name.toLowerCase()] : 999999;
-                return indexA - indexB;
-            });
+                // Sort existing students: CSV names first (in order), then others
+                this.currentStudents.sort((a, b) => {
+                    const indexA = orderMap[a.name.toLowerCase()] !== undefined ? orderMap[a.name.toLowerCase()] : 999999;
+                    const indexB = orderMap[b.name.toLowerCase()] !== undefined ? orderMap[b.name.toLowerCase()] : 999999;
+                    return indexA - indexB;
+                });
 
-            this.renderMarksTable();
-            Utils.showToast(`Imported marks for ${matchCount} students. Click 'Save All Marks' to persist.`, 'success');
+                this.renderMarksTable();
+                Utils.showToast(`Imported marks for ${matchCount} students. Click 'Save All Marks' to persist.`, 'success');
 
-        } catch (error) {
-            console.error('Error importing marks:', error);
-            Utils.showToast('Error parsing CSV', 'error');
-            Utils.hideLoading();
-        }
-    };
-    reader.readAsText(file);
-}
+            } catch (error) {
+                console.error('Error importing marks:', error);
+                Utils.showToast('Error parsing CSV', 'error');
+                Utils.hideLoading();
+            }
+        };
+        reader.readAsText(file);
+    }
 };
