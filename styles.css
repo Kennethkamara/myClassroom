@@ -1173,3 +1173,170 @@ textarea {
 .hidden {
     display: none !important;
 }
+
+/* ========== Mobile Responsiveness (Phone) ========== */
+@media (max-width: 480px) {
+
+    /* Header Stacking */
+    .app-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        text-align: center;
+    }
+
+    .header-container {
+        align-items: center;
+        width: 100%;
+    }
+
+    .header-logo {
+        height: 48px;
+    }
+
+    .header-right {
+        width: 100%;
+        justify-content: center;
+        margin-top: var(--spacing-sm);
+    }
+
+    /* Navigation - Horizontal Scroll */
+    .tab-navigation {
+        padding: 0 var(--spacing-sm);
+        justify-content: flex-start;
+        /* Align left to allow scroll */
+        -webkit-overflow-scrolling: touch;
+        /* Smooth scroll on iOS */
+    }
+
+    .tab-btn {
+        padding: var(--spacing-md) var(--spacing-sm);
+        font-size: 0.9rem;
+        flex-shrink: 0;
+        /* Prevent shrinking */
+        white-space: nowrap;
+    }
+
+    /* Main Content */
+    .main-content {
+        padding: 0 var(--spacing-xs);
+        margin-top: var(--spacing-sm);
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+
+    .section-header h2 {
+        text-align: center;
+        font-size: 1.25rem;
+    }
+
+    /* Buttons & Inputs - Touch Friendly */
+    .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+        /* Larger touch area */
+        font-size: 1rem;
+    }
+
+    /* Toolbar/Action Buttons Container */
+    .table-actions,
+    .filter-bar {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    /* Exceptions for small buttons if needed */
+    .btn-sm {
+        width: auto;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .form-control {
+        font-size: 16px;
+        /* Prevents iOS zoom */
+        padding: 0.75rem;
+    }
+
+    /* Filter Bar Stacking */
+    .filter-bar {
+        background: var(--bg-surface);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .filter-bar select,
+    .filter-bar input {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    /* Tables - Horizontal Scroll Card */
+    .table-container,
+    .marks-table-container {
+        margin: var(--spacing-sm) -var(--spacing-xs);
+        /* Bleed to edges */
+        border-right: none;
+        border-left: none;
+        border-radius: 0;
+        overflow-x: auto;
+    }
+
+    .data-table th,
+    .data-table td,
+    .marks-table th,
+    .marks-table td {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        /* Prevent wrapping unless you want tall rows */
+    }
+
+    /* Sticky first column for marks table if possible */
+    .marks-table td:first-child,
+    .marks-table th:first-child {
+        position: sticky;
+        left: 0;
+        background: var(--bg-surface);
+        z-index: 10;
+        border-right: 2px solid var(--grid-border);
+    }
+
+    /* Modals */
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        padding: var(--spacing-md);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        flex-direction: column-reverse;
+        /* Stack buttons, OK on top/bottom? Usually OK on right */
+        gap: var(--spacing-sm);
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+        margin: 0;
+    }
+
+    /* Recent Entries Card */
+    .recent-entry {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: var(--spacing-md);
+        border-bottom: 4px solid var(--bg-body);
+        /* Distinct separator */
+    }
+
+    .recent-entry>div {
+        margin-bottom: 0.25rem;
+    }
+}
