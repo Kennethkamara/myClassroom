@@ -252,23 +252,30 @@
         &copy; 2026 MyClassroom. Built for Teachers.
     </footer>
 
-    <!-- PWA Install Prompt -->
+    <!-- PWA Install Prompt (Redesigned) -->
     <div id="installPrompt" class="install-prompt-container"
-        style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 1000; align-items: center; justify-content: space-between; border: 1px solid #e5e7eb;">
-        <div class="install-prompt-content" style="display: flex; align-items: center; gap: 15px; width: 100%;">
-            <div class="install-icon" style="font-size: 2rem;">📲</div>
+        style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 380px; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1000; flex-direction: column; border: 1px solid #f3f4f6; animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);">
+
+        <div class="install-content" style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
+            <div class="install-icon"
+                style="font-size: 2.5rem; background: #e0f2fe; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
+                📲</div>
             <div class="install-texts" style="flex: 1;">
-                <div class="install-title" style="font-weight: bold; color: var(--text-primary); margin-bottom: 2px;">
-                    Install App</div>
-                <div class="install-desc" style="font-size: 0.85rem; color: var(--text-secondary);">Add MyClassroom to
-                    your home screen!</div>
+                <div class="install-title"
+                    style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Install
+                    App</div>
+                <div class="install-desc" style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;">Get
+                    the best experience by adding MyClassroom to your home screen!</div>
             </div>
-            <div class="install-actions" style="display: flex; gap: 8px;">
-                <button id="installDismissBtn" class="btn btn-secondary btn-sm"
-                    style="padding: 0.4rem 0.6rem; font-size: 0.8rem; background: #f3f4f6; color: #4b5563; border: none; border-radius: 6px; cursor: pointer;">Later</button>
-                <button id="installAcceptBtn" class="btn btn-primary btn-sm"
-                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-blue, #00A3E0); color: white; border: none; border-radius: 6px; cursor: pointer;">Install</button>
-            </div>
+        </div>
+
+        <div class="install-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button id="installDismissBtn" class="btn"
+                style="padding: 0.6rem 1.2rem; font-size: 0.95rem; background: transparent; color: #6b7280; border: none; font-weight: 600; cursor: pointer;">Not
+                Now</button>
+            <button id="installAcceptBtn" class="btn"
+                style="padding: 0.6rem 1.5rem; font-size: 0.95rem; background: var(--primary-blue, #00A3E0); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 163, 224, 0.3);">Install
+                App</button>
         </div>
     </div>
 
@@ -320,8 +327,6 @@
             console.log("👋 Showing install prompt!");
             if (installPromptEl) {
                 installPromptEl.style.display = 'flex';
-                // Add slide up animation
-                installPromptEl.style.animation = 'slideUp 0.5s ease-out forwards';
             }
         });
 
