@@ -146,7 +146,8 @@ const MarksTable = {
                 Utils.showToast('Session expired. Please log in again.', 'warning');
                 setTimeout(() => window.location.href = 'login.html', 2000);
             } else {
-                Utils.showToast('Error loading marks. Check connection.', 'error');
+                // Show actual error for debugging
+                Utils.showToast(`Error: ${error.message}`, 'error');
             }
             Utils.hideLoading();
         }

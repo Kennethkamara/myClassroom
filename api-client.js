@@ -202,7 +202,7 @@ const APIClient = {
         if (!this.USE_FIREBASE) return DummyData.configurations[0]; // Fallback
 
         const user = firebase.auth().currentUser;
-        if (!user) return null;
+        if (!user) throw new Error("Please Log In");
 
         try {
             const q = firebase.firestore().collection("configurations")
