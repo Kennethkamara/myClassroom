@@ -88,15 +88,9 @@ const App = {
             // Stash the event so it can be triggered later.
             deferredPrompt = e;
 
-            // Check if user has dismissed it recently (e.g., in last 24 hours)
-            const lastDismissed = localStorage.getItem('installPromptDismissed');
-            const now = Date.now();
-
-            if (!lastDismissed || (now - parseInt(lastDismissed) > 24 * 60 * 60 * 1000)) {
-                // Show the prompt
-                console.log("👋 Showing install prompt!");
-                if (installPromptEl) installPromptEl.style.display = 'flex';
-            }
+            // Show the prompt immediately without dismissal check for now
+            console.log("👋 Showing install prompt!");
+            if (installPromptEl) installPromptEl.style.display = 'flex';
         });
 
         if (installBtn) {
