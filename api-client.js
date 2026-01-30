@@ -338,28 +338,65 @@ const APIClient = {
      * Save multiple marks (batch operation)
      */
     async saveMarks(marksArray) {
-        // Firestore batch has a limit of 500 operations. 
-        // For simplicity, we'll loop sequentially or use small batches.
-        // Given the array size might be small (class size), parallel promises are okay.
-
-        // Better: Use batch for atomicity
         const user = firebase.auth().currentUser;
         if (!user) return false;
 
-        const batch = firebase.firestore().batch();
-        const marksRef = firebase.firestore().collection("marks");
+        if (!marksArray || marksArray.length === 0) return true;
 
         try {
-            // NOTE: Batching 'upsert' (check then update/create) is hard in one go without knowing IDs.
-            // For simplicity in this rapid migration, we'll just loop saveMark (imperfect but functional)
-            // OR we fetch all existing marks for this class/subject context first to minimize reads.
+            const db = firebase.firestore();
+            const batch = db.batch();
+            const marksRef = db.collection("marks");
 
-            for (const mark of marksArray) {
-                await this.saveMark(mark);
-            }
+            // 1. Get context from first item to fetch existing marks efficiently
+            const context = marksArray[0];
+
+            // Fetch all existing marks for this Class + Subject + Term
+            // This turns N reads into 1 read.
+            const q = marksRef
+                .where("teacher_id", "==", user.uid)
+                .where("class_id", "==", context.class_id)
+                .where("subject_id", "==", context.subject_id)
+                .where("term_id", "==", context.term_id);
+
+            const snapshot = await q.get();
+            const existingMarksMap = {}; // Map student_id -> docRef
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.student_id) {
+                    existingMarksMap[data.student_id] = doc.ref;
+                }
+            });
+
+            // 2. Build Batch
+            marksArray.forEach(mark => {
+                const existingRef = existingMarksMap[mark.student_id];
+
+                if (existingRef) {
+                    // Update
+                    batch.update(existingRef, {
+                        ...mark,
+                        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    // Create
+                    const newRef = marksRef.doc();
+                    batch.set(newRef, {
+                        ...mark,
+                        teacher_id: user.uid,
+                        created_at: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            });
+
+            // 3. Commit Batch
+            await batch.commit();
+            console.log("✅ Batch save completed successfully");
             return true;
         } catch (e) {
             console.error("Error saving marks batch:", e);
+            Utils.showToast("Error saving: " + e.message, "error");
             return false;
         }
     },

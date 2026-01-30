@@ -484,13 +484,15 @@ const MarksTable = {
             if (newStudents.length > 0) {
                 if (await Utils.showConfirm(`Found ${newStudents.length} new students in file. Add them to this class?`, 'Import New Students')) {
                     Utils.showLoading();
-                    for (const name of newStudents) {
-                        await APIClient.addStudent({
-                            name: name,
-                            class_id: this.selectedClass,
-                            gender: 'Male' // Default
-                        });
-                    }
+
+                    const studentsBatch = newStudents.map(name => ({
+                        name: name,
+                        class_id: this.selectedClass,
+                        gender: 'Male' // Default
+                    }));
+
+                    await APIClient.importStudents(studentsBatch);
+
                     // Reload fresh list
                     this.currentStudents = await APIClient.getStudentsByClass(this.selectedClass);
                     Utils.hideLoading();
