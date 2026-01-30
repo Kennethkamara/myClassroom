@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyClassroom</title>
+    <meta name="description" content="Class Management Tool for Secondary School Teachers in Sierra Leone">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="icon-192.png?v=5">
+    <link rel="shortcut icon" type="image/png" href="icon-192.png?v=5">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CMT">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+
+    <link rel="stylesheet" href="styles.css?v=3">
+    <link rel="stylesheet" href="print-styles.css?v=2" media="print">
+
+    <!-- IMMEDIATE THEME CHECK (Prevents White Flash) -->
+    <script>
+        (function () {
+            try {
+                const storedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+            } catch (e) {
+                console.error('Theme init error:', e);
+            }
+        })();
+    </script>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <img src="logo-header.png?v=3" alt="MyClassroom" class="header-logo">
+            <div class="header-text">
+                <p class="subtitle">Your Digital Class Management Tool</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button id="logoutBtn" class="theme-toggle" aria-label="Logout" title="Logout">
+                🚪
+            </button>
+            <button id="themeToggle" class="theme-toggle" aria-label="Switch Theme" title="Switch Theme">
+                🌙
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="tab-navigation" id="tabNavigation">
+        <button class="tab-btn active" data-tab="dashboard">
+            <span class="tab-icon">⚙️</span>
+            Configuration
+        </button>
+        <button class="tab-btn" data-tab="students">
+            <span class="tab-icon">👥</span>
+            Students
+        </button>
+        <button class="tab-btn" data-tab="quick">
+            <span class="tab-icon">⚡</span>
+            Quick Entry
+        </button>
+        <button class="tab-btn" data-tab="marks">
+            <span class="tab-icon">📝</span>
+            Mark Entry
+        </button>
+        <button class="tab-btn" data-tab="export">
+            <span class="tab-icon">📊</span>
+            Export & Print
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Configuration Dashboard Tab -->
+        <section id="dashboard-tab" class="tab-content active">
+            <div class="content-card">
+                <h2>Term Configuration Dashboard</h2>
+                <p class="section-description">Configure test parameters for the selected class, subject, and term.</p>
+
+                <!-- Selectors -->
+                <div class="selector-grid">
+                    <div class="form-group">
+                        <label for="configClass">Class</label>
+                        <select id="configClass" class="form-control">
+                            <option value="">Select Class</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="configSubject">Subject</label>
+                        <select id="configSubject" class="form-control">
+                            <option value="">Select Subject</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="configTerm">Term</label>
+                        <select id="configTerm" class="form-control">
+                            <option value="">Select Term</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Configuration Form -->
+                <div class="config-form" id="configForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="testMarkedOver">Test Marked Over</label>
+                            <input type="number" id="testMarkedOver" class="form-control" placeholder="e.g., 100"
+                                min="1" value="100">
+                            <small class="form-hint">Total marks the test is out of</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="maxAddedMarks">Maximum Added Marks</label>
+                            <input type="number" id="maxAddedMarks" class="form-control" placeholder="e.g., 20" min="0"
+                                value="20">
+                            <small class="form-hint">Maximum discretionary marks a teacher can add</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="testContribution">Test Overall Contribution (%)</label>
+                            <input type="number" id="testContribution" class="form-control" placeholder="e.g., 10 or 60"
+                                min="1" max="100" value="10">
+                            <small class="form-hint">Percentage this test contributes to final grade (e.g., 10% or
+                                60%)</small>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="saveConfigBtn">
+                        <span>💾</span> Save Configuration
+                    </button>
+
+                    <div class="alert alert-info" style="margin-top: 1rem;">
+                        ℹ️ Configuration will be saved to Google Sheets and applied to all mark entries for this class,
+                        subject, and term.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Students Management Tab -->
+        <section id="students-tab" class="tab-content">
+            <div class="content-card">
+                <div class="section-header">
+                    <h2>Student Management</h2>
+                    <button class="btn btn-success" id="addStudentBtn">
+                        <span>➕</span> Add Student
+                    </button>
+                    <button class="btn btn-secondary" id="importStudentBtn" style="min-width: 110px;">
+                        <span>📂</span> Import
+                    </button>
+                    <button class="btn btn-danger" id="deleteClassBtn">
+                        <span>🗑️</span> Delete Class
+                    </button>
+                    <input type="file" id="importStudentFile" accept=".csv, .xlsx, .xls" style="display: none;">
+                </div>
+
+                <!-- Filter -->
+                <div class="filter-bar">
+                    <div class="form-group">
+                        <label for="studentClassFilter">Filter by Class</label>
+                        <select id="studentClassFilter" class="form-control">
+                            <option value="">All Classes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentGenderFilter">Filter by Gender</label>
+                        <select id="studentGenderFilter" class="form-control">
+                            <option value="">All Genders</option>
+                            <option value="Male">♂️ Male</option>
+                            <option value="Female">♀️ Female</option>
+                        </select>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="studentSearch" class="form-control" placeholder="🔍 Search students...">
+                    </div>
+                    <div class="student-stats"
+                        style="display: flex; gap: 1rem; align-items: center; margin-left: auto; font-weight: 600;">
+                        <span style="color: var(--primary-blue);">♂️ Male: <span id="maleCount">0</span></span>
+                        <span style="color: var(--accent-pink);">♀️ Female: <span id="femaleCount">0</span></span>
+                        <span style="color: var(--text-primary);">Total: <span id="totalCount">0</span></span>
+                    </div>
+                </div>
+
+                <!-- Students Table -->
+                <div class="table-container">
+                    <table class="data-table" id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Student Name</th>
+                                <th>Gender</th>
+                                <th>Class</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <tr class="loading-row">
+                                <td colspan="5">Loading students...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Entry Tab -->
+        <section id="quick-tab" class="tab-content">
+            <div class="content-card">
+                <h2>⚡ Quick Entry</h2>
+                <p class="section-description">Rapidly enter student marks with automatic calculation and saving.</p>
+
+                <!-- Selectors -->
+                <div class="selector-grid">
+                    <div class="form-group">
+                        <label for="quickClass">Class</label>
+                        <select id="quickClass" class="form-control">
+                            <option value="">Select Class</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quickSubject">Subject</label>
+                        <select id="quickSubject" class="form-control">
+                            <option value="">Select Subject</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quickTerm">Term</label>
+                        <select id="quickTerm" class="form-control">
+                            <option value="">Select Term</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Quick Entry Form -->
+                <div id="quickEntryFormContainer" style="display: none;">
+                    <!-- Config Display -->
+                    <div class="config-display" style="margin-bottom: 1.5rem;">
+                        <div class="config-item">
+                            <strong>Test Marked Over:</strong> <span id="quickMarkedOver">100</span>
+                        </div>
+                        <div class="config-item">
+                            <strong>Max Added Marks:</strong> <span id="quickMaxAdded">20</span>
+                        </div>
+                    </div>
+
+                    <!-- Entry Form -->
+                    <form id="quickEntryForm" style="max-width: 600px;">
+                        <div class="quick-entry-inputs">
+                            <div class="form-group">
+                                <label for="quickStudentName">Student Name</label>
+                                <input type="text" id="quickStudentName" class="form-control"
+                                    placeholder="Enter student name" autocomplete="off" required>
+                                <small class="form-hint">Press Tab to move to gender field</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="quickGender">Gender</label>
+                                <select id="quickGender" class="form-control" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">♂️ Male</option>
+                                    <option value="Female">♀️ Female</option>
+                                </select>
+                                <small class="form-hint">Select student's gender</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="quickRawScore">Raw Test Score</label>
+                                <input type="number" id="quickRawScore" class="form-control"
+                                    placeholder="Enter raw score" min="0" step="0.5" required>
+                                <small class="form-hint">Press Enter to save and continue</small>
+                            </div>
+                        </div>
+
+                        <!-- Calculation Preview -->
+                        <div class="calculation-preview"
+                            style="margin: 1rem 0; padding: 1rem; background: var(--gray-50); border-radius: var(--radius-sm);">
+                            <strong>Preview:</strong> <span id="calculationPreview"
+                                style="color: var(--primary-blue); font-weight: 600;">Final: 0.00 / 10</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-success" style="width: 100%;">
+                            <span>💾</span> Save & Next (Enter)
+                        </button>
+                    </form>
+
+                    <!-- Recent Entries -->
+                    <div class="recent-entries" style="margin-top: 2rem;">
+                        <h3 style="font-size: 1.125rem; margin-bottom: 1rem; color: var(--gray-700);">Recent Entries
+                        </h3>
+                        <div id="recentEntriesList" class="recent-entries-list">
+                            <p class="empty-state">No entries yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="empty-state" id="quickEmptyState" style="display: block;">
+                    <p>⚡ Select a class, subject, and term to begin quick entry.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mark Entry Tab -->
+        <section id="marks-tab" class="tab-content">
+            <div class="content-card">
+                <h2>Mark Entry - Excel-like Table</h2>
+
+                <!-- Selectors -->
+                <div class="selector-grid">
+                    <div class="form-group">
+                        <label for="marksClass">Class</label>
+                        <select id="marksClass" class="form-control">
+                            <option value="">Select Class</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="marksSubject">Subject</label>
+                        <select id="marksSubject" class="form-control">
+                            <option value="">Select Subject</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="marksTerm">Term</label>
+                        <select id="marksTerm" class="form-control">
+                            <option value="">Select Term</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="loadMarksBtn">
+                        <span>📋</span> Load Marks
+                    </button>
+                </div>
+
+                <!-- Configuration Display -->
+                <div class="config-display" id="configDisplay" style="display: none;">
+                    <div class="config-item">
+                        <strong>Test Marked Over:</strong> <span id="displayMarkedOver">100</span>
+                    </div>
+                    <div class="config-item">
+                        <strong>Max Added Marks:</strong> <span id="displayMaxAdded">20</span>
+                    </div>
+                    <div class="config-item">
+                        <strong>Test Contribution:</strong> <span>10%</span>
+                    </div>
+                </div>
+
+                <!-- Marks Table (Excel-like) -->
+                <div class="marks-table-container" id="marksTableContainer" style="display: none;">
+                    <div class="table-wrapper">
+                        <table class="marks-table" id="marksTable">
+                            <thead>
+                                <tr>
+                                    <th class="col-student-name">Student Name</th>
+                                    <th class="col-raw-score">Raw Test Score</th>
+                                    <th class="col-added-mark">Added Mark</th>
+                                    <th class="col-final-contribution">Final Test Contribution (out of 10%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="marksTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <input type="file" id="importMarksFile" accept=".csv" style="display: none;">
+                        <button class="btn btn-secondary" id="importMarksBtn" style="margin-right: 10px;">
+                            <span>📥</span> Import Marks (CSV)
+                        </button>
+                        <button class="btn btn-success" id="saveAllMarksBtn">
+                            <span>💾</span> Save All Marks
+                        </button>
+                        <span class="save-status" id="saveStatus"></span>
+                    </div>
+                </div>
+
+                <div class="empty-state" id="marksEmptyState">
+                    <p>📋 Select a class, subject, and term, then click "Load Marks" to begin entering marks.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Export & Print Tab -->
+        <section id="export-tab" class="tab-content">
+            <div class="content-card">
+                <h2>Export & Print Results</h2>
+
+                <!-- Selectors -->
+                <div class="selector-grid">
+                    <div class="form-group">
+                        <label for="exportClass">Class</label>
+                        <select id="exportClass" class="form-control">
+                            <option value="">Select Class</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="exportSubject">Subject</label>
+                        <select id="exportSubject" class="form-control">
+                            <option value="">Select Subject</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="exportTerm">Term</label>
+                        <select id="exportTerm" class="form-control">
+                            <option value="">Select Term</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Export Options -->
+                <div class="export-options">
+                    <h3>Export Options</h3>
+                    <div class="export-buttons">
+                        <button class="btn btn-export" id="exportCSVBtn">
+                            <span>📄</span> Export as CSV
+                        </button>
+                        <button class="btn btn-export" id="exportExcelBtn">
+                            <span>📗</span> Export as Excel
+                        </button>
+                        <button class="btn btn-export" id="exportPDFBtn">
+                            <span>📕</span> Export as PDF
+                        </button>
+                        <button class="btn btn-export" id="printBtn">
+                            <span>🖨️</span> Print Results
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div class="export-preview" id="exportPreview" style="display: none;">
+                    <h3>Preview</h3>
+                    <div id="exportPreviewContent"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Print Section (Hidden, only shows when printing) -->
+    <div class="print-only" id="printSection">
+        <div class="print-header">
+            <img src="logo-header.png" alt="MyClassroom" class="print-logo">
+            <div class="print-info">
+                <p><strong>Class:</strong> <span id="printClass"></span></p>
+                <p><strong>Subject:</strong> <span id="printSubject"></span></p>
+                <p><strong>Term:</strong> <span id="printTerm"></span></p>
+                <p><strong>Date:</strong> <span id="printDate"></span></p>
+            </div>
+        </div>
+        <div id="printTableContainer"></div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add/Edit Student Modal -->
+    <div class="modal" id="studentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="studentModalTitle">Add Student</h3>
+                <button class="modal-close" id="closeStudentModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="studentName">Student Name</label>
+                    <input type="text" id="studentName" class="form-control" placeholder="Enter student name" required>
+                </div>
+                <div class="form-group">
+                    <label for="studentGender">Gender</label>
+                    <select id="studentGender" class="form-control" required>
+                        <option value="">Select Gender</option>
+                        <option value="Male">♂️ Male</option>
+                        <option value="Female">♀️ Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="studentClass">Class</label>
+                    <select id="studentClass" class="form-control" required>
+                        <option value="">Select Class</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelStudentBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveStudentBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal" id="confirmModal" style="z-index: 2000;">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header" style="justify-content: center; border-bottom: none;">
+                <h3 id="confirmModalTitle">Confirm Action</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage" style="font-size: 1.1rem; color: var(--text-primary);">Are you sure?</p>
+            </div>
+            <div class="modal-footer"
+                style="justify-content: center; gap: 15px; border-top: none; padding-bottom: 2rem;">
+                <button class="btn btn-secondary" id="confirmCancelBtn" style="min-width: 100px;">Cancel</button>
+                <button class="btn btn-primary" id="confirmOkBtn" style="min-width: 100px;">OK</button>
+            </div>
+        </div>
+        <!-- Flying Robot Notification -->
+        <div id="flyingRobot"
+            style="position: fixed; top: 20%; left: -300px; z-index: 9999; display: flex; align-items: center; gap: 10px; pointer-events: none;">
+            <div style="font-size: 4rem;">🤖</div>
+            <div id="robotMessage"
+                style="background: var(--error); color: white; padding: 1rem 1.5rem; border-radius: 20px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 1.1rem; border: 2px solid white;">
+                Message Here
+            </div>
+        </div>
+
+        <!-- Confetti Canvas -->
+        <canvas id="confettiCanvas"
+            style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; display: none;"></canvas>
+
+        <!-- Success Checkmark -->
+        <div id="successCheck"
+            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9997; display: none; pointer-events: none;">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="var(--success)" opacity="0.9" />
+                <path d="M 30 50 L 45 65 L 70 35" stroke="white" stroke-width="8" fill="none" stroke-linecap="round"
+                    stroke-linejoin="round" class="success-checkmark" />
+            </svg>
+        </div>
+    </div>
+
+    <!-- PWA Install Prompt -->
+    <div id="installPrompt" class="install-prompt-container">
+        <div class="install-prompt-content">
+            <div class="install-icon">📲</div>
+            <div class="install-texts">
+                <div class="install-title">Install App</div>
+                <div class="install-desc">Install MyClassroom for a better experience!</div>
+            </div>
+            <div class="install-actions">
+                <button id="installDismissBtn" class="btn btn-secondary btn-sm"
+                    style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Later</button>
+                <button id="installAcceptBtn" class="btn btn-primary btn-sm"
+                    style="padding: 0.25rem 0.75rem; font-size: 0.9rem;">Install</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Logout Goodbye Overlay -->
+    <div id="logoutOverlay"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #00A3E0, #4DC3F7); display: none; z-index: 10000; align-items: center; justify-content: center; flex-direction: column; color: white;">
+        <div style="text-align: center; transform: scale(0.8); opacity: 0;" id="logoutContent">
+            <div style="font-size: 6rem; margin-bottom: 1rem;">👋</div>
+            <h1 style="font-size: 3rem; margin: 0; font-weight: bold;">See You Soon!</h1>
+            <p style="font-size: 1.3rem; margin-top: 0.5rem; opacity: 0.9;">Logging you out...</p>
+        </div>
+    </div>
+
+    <style>
+        @keyframes goodbyeZoomIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .goodbye-animate {
+            animation: goodbyeZoomIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+        }
+    </style>
+
+    <!-- External Libraries -->
+    <!-- Use xlsx-js-style for styling support (borders, colors) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <!-- Firebase Config - Load before other scripts -->
+    <script src="firebase-config.js"></script>
+
+    <!-- Application Scripts -->
+    <script src="utils.js?v=2"></script>
+    <script src="dummy-data.js"></script>
+    <script src="google-sheets-api.js?v=2"></script>
+    <script src="api-client.js?v=2"></script>
+    <script src="validators.js?v=2"></script>
+    <script src="theme-manager.js?v=1"></script>
+    <script src="config-manager.js?v=2"></script>
+    <script src="student-manager.js"></script>
+    <script src="marks-table.js"></script>
+    <script src="quick-entry.js"></script>
+    <script src="export-handler.js"></script>
+    <script src="app.js?v=20260129"></script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

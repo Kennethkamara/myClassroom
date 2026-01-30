@@ -308,7 +308,7 @@
                 case 'auth/invalid-credential':
                 case 'auth/user-not-found':
                 case 'auth/wrong-password':
-                    msg = "Incorrect Email or Password.\n\nIf you are new to MyClassroom, please click 'Create New Account'.";
+                    msg = "Incorrect Email or Password.\n\nPlease contact the administrator if you don't have an account.";
                     break;
                 case 'auth/email-already-in-use':
                     msg = "Account already exists! Please click 'Sign In' instead.";
@@ -346,7 +346,7 @@
 
                     if (!overlay) {
                         console.error('❌ loginSuccessOverlay NOT FOUND!');
-                        window.location.href = "index.html";
+                        window.location.href = "app.html";
                         return;
                     }
 
@@ -376,7 +376,7 @@
                     // Redirect after animation
                     setTimeout(() => {
                         console.log('🚀 Redirecting to main app...');
-                        window.location.href = "index.html";
+                        window.location.href = "app.html";
                     }, 2500);
                 })
                 .catch(err => handleAuthError(err));

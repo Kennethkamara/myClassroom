@@ -1,7 +1,5 @@
-/**
- * Main Application Controller
- * Handles tab navigation and module initialization
- */
+// Checked app.js, no changes needed for index.html -> app.html here as it redirects to login.html.
+// Proceeding to grep search.
 
 const App = {
     currentTab: 'dashboard',

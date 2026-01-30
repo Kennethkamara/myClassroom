@@ -2,7 +2,7 @@
   "name": "MyClassroom",
   "short_name": "MyClassroom",
   "description": "Your digital classroom management tool for tracking student marks",
-  "start_url": "/index.html",
+  "start_url": "/app.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",

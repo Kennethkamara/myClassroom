@@ -3,9 +3,10 @@
  * Handles caching and offline functionality
  */
 
-const CACHE_NAME = 'cmt-v2';
+const CACHE_NAME = 'cmt-v3';
 const urlsToCache = [
     '/index.html',
+    '/app.html',
     '/login.html',
     '/styles.css',
     '/print-styles.css',
