@@ -241,24 +241,46 @@ body {
 
 @media (max-width: 768px) {
     .app-header {
-        flex-direction: column;
+        flex-direction: row;
+        /* Keep row layout */
+        flex-wrap: wrap;
+        /* Allow wrapping if really needed */
         gap: var(--spacing-sm);
         padding: var(--spacing-md);
+        justify-content: space-between;
     }
 
     .header-container {
-        align-items: center;
-        text-align: center;
-        width: 100%;
+        align-items: flex-start;
+        text-align: left;
+        width: auto;
+        /* Allow it to shrink */
+        flex: 1;
+        /* Take up available space */
     }
 
     .header-text {
-        align-items: center;
+        align-items: flex-start;
+        display: none;
+        /* Hide subtitle on very small screens if needed, or keep it */
+    }
+
+    /* Show subtitle only if enough space, otherwise hide to save room */
+    @media (max-width: 480px) {
+        .subtitle {
+            display: none;
+        }
+
+        .header-logo {
+            height: 40px;
+            /* Smaller logo on mobile */
+        }
     }
 
     .header-logo {
         height: 50px;
-        margin-bottom: 5px;
+        margin-bottom: 0;
+        margin-right: 10px;
     }
 }
 
