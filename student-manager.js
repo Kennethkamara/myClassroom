@@ -455,12 +455,12 @@ const StudentManager = {
         event.target.value = '';
 
         const validTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-        const validExtensions = ['.csv', '.xls', '.xlsx'];
+        const validExtensions = ['.csv', '.xls', '.xlsx', '.txt'];
 
         const isValid = validExtensions.some(ext => file.name.endsWith(ext));
 
         if (!isValid) {
-            Utils.showToast('Please upload a CSV or Excel file', 'error');
+            Utils.showToast('Please upload a CSV, TXT, or Excel file', 'error');
             return;
         }
 
@@ -471,7 +471,7 @@ const StudentManager = {
                 const data = e.target.result;
                 let jsonData = [];
 
-                if (file.name.endsWith('.csv')) {
+                if (file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
                     // Manual CSV parsing or use SheetJS if preferred, keeping Utils.parseCSV for now for backward compat
                     // But actually, SheetJS handles CSV robustly too. Let's use SheetJS for EVERYTHING to be safe.
                     const workbook = XLSX.read(data, { type: 'binary' });

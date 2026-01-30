@@ -406,8 +406,8 @@ const MarksTable = {
         // Reset input
         event.target.value = '';
 
-        if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
-            Utils.showToast('Please upload a CSV file', 'error');
+        if (file.type !== 'text/csv' && !file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
+            Utils.showToast('Please upload a CSV or TXT file', 'error');
             return;
         }
 
