@@ -18,7 +18,6 @@
         }
     </script>
 
-
     <!-- Firebase SDK (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -260,30 +259,29 @@
         &copy; 2026 MyClassroom. Built for Teachers.
     </footer>
 
-    <!-- PWA Install Prompt (Redesigned) -->
+    <!-- PWA Install Prompt (Compact) -->
     <div id="installPrompt" class="install-prompt-container"
-        style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 380px; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1000; flex-direction: column; border: 1px solid #f3f4f6; animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);">
+        style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 320px; background: white; padding: 16px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 1000; flex-direction: column; border: 1px solid #f3f4f6; animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);">
 
-        <div class="install-content" style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
+        <div class="install-content" style="display: flex; align-items: start; gap: 12px; margin-bottom: 16px;">
             <div class="install-icon"
-                style="font-size: 2.5rem; background: #e0f2fe; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
+                style="font-size: 1.5rem; background: #e0f2fe; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;">
                 📲</div>
             <div class="install-texts" style="flex: 1;">
                 <div class="install-title"
-                    style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Install
+                    style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 2px;">Install
                     App</div>
-                <div class="install-desc" style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;">Get
-                    the best experience by adding MyClassroom to your home screen!</div>
+                <div class="install-desc" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.35;">
+                    Add to home screen for better experience.</div>
             </div>
         </div>
 
-        <div class="install-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+        <div class="install-actions" style="display: flex; gap: 8px; justify-content: flex-end;">
             <button id="installDismissBtn" class="btn"
-                style="padding: 0.6rem 1.2rem; font-size: 0.95rem; background: transparent; color: #6b7280; border: none; font-weight: 600; cursor: pointer;">Not
+                style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: transparent; color: #6b7280; border: none; font-weight: 600; cursor: pointer;">Not
                 Now</button>
             <button id="installAcceptBtn" class="btn"
-                style="padding: 0.6rem 1.5rem; font-size: 0.95rem; background: var(--primary-blue, #00A3E0); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 163, 224, 0.3);">Install
-                App</button>
+                style="padding: 0.4rem 1rem; font-size: 0.85rem; background: var(--primary-blue, #00A3E0); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 163, 224, 0.3);">Install</button>
         </div>
     </div>
 
