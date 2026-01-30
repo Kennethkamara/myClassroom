@@ -197,7 +197,7 @@ const MarksTable = {
             rawScoreInput.addEventListener('input', (e) => this.handleMarkInput(e));
             rawScoreInput.addEventListener('blur', (e) => this.validateField(e));
             rawScoreCell.appendChild(rawScoreInput);
-            row.appendChild(rawScoreCell);
+            tr.appendChild(rawScoreCell);
 
             // Added mark (editable)
             const addedMarkCell = document.createElement('td');
@@ -212,7 +212,7 @@ const MarksTable = {
             addedMarkInput.addEventListener('input', (e) => this.handleMarkInput(e));
             addedMarkInput.addEventListener('blur', (e) => this.validateField(e));
             addedMarkCell.appendChild(addedMarkInput);
-            row.appendChild(addedMarkCell);
+            tr.appendChild(addedMarkCell);
 
             // Final contribution (calculated)
             const finalCell = document.createElement('td');
@@ -225,9 +225,9 @@ const MarksTable = {
                 this.currentConfig.test_contribution || 10
             );
             finalCell.textContent = finalValue;
-            row.appendChild(finalCell);
+            tr.appendChild(finalCell);
 
-            tbody.appendChild(row);
+            tbody.appendChild(tr);
         });
     },
 
