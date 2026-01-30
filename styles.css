@@ -2125,3 +2125,8 @@ button.loading,
 .modal.closing .modal-content {
     animation: modalZoomOut 0.3s ease-out;
 }
+
+/* Force logout overlay to blue theme */
+#logoutOverlay {
+    background: linear-gradient(135deg, #00A3E0, #4DC3F7) !important;
+}
