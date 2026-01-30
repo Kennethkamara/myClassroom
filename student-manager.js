@@ -440,95 +440,143 @@ const StudentManager = {
         const file = event.target.files[0];
         if (!file) return;
 
-        // Reset input so same file can be selected again
+        // Reset input
         event.target.value = '';
 
-        if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
-            Utils.showToast('Please upload a CSV file', 'error');
+        const validTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+        const validExtensions = ['.csv', '.xls', '.xlsx'];
+
+        const isValid = validExtensions.some(ext => file.name.endsWith(ext));
+
+        if (!isValid) {
+            Utils.showToast('Please upload a CSV or Excel file', 'error');
             return;
         }
 
         const reader = new FileReader();
+
         reader.onload = async (e) => {
             try {
-                const text = e.target.result;
-                const data = Utils.parseCSV(text);
+                const data = e.target.result;
+                let jsonData = [];
 
-                if (data.length === 0) {
-                    Utils.showToast('CSV file is empty or invalid', 'error');
+                if (file.name.endsWith('.csv')) {
+                    // Manual CSV parsing or use SheetJS if preferred, keeping Utils.parseCSV for now for backward compat
+                    // But actually, SheetJS handles CSV robustly too. Let's use SheetJS for EVERYTHING to be safe.
+                    const workbook = XLSX.read(data, { type: 'binary' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                } else {
+                    // Excel
+                    const workbook = XLSX.read(data, { type: 'binary' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                }
+
+                if (jsonData.length === 0) {
+                    // Fallback to text parsing if SheetJS returns empty for CSV (sometimes specific encodings)
+                    if (file.name.endsWith('.csv')) {
+                        jsonData = Utils.parseCSV(data);
+                    } else {
+                        Utils.showToast('File is empty or invalid', 'error');
+                        return;
+                    }
+                }
+
+                if (jsonData.length === 0) {
+                    Utils.showToast('No data found in file', 'error');
                     return;
                 }
 
-                // Basic validation/mapping
-                // Expect headers like: "Name", "Class" (or "name", "class_id")
-                // We'll normalize keys to lowercase match
-
-                const validStudents = [];
-                let skipCount = 0;
-
-                // Get valid classes to map names to IDs if needed
-                const classes = await APIClient.getClasses();
-                const classMap = {};
-                classes.forEach(c => {
-                    classMap[c.name.toLowerCase()] = c.id;
-                    classMap[c.id.toLowerCase()] = c.id;
-                });
-
-                for (const row of data) {
-                    // Try to find name and class columns
-                    // Keys might be "Student Name", "Name", "Full Name", etc.
-                    const keys = Object.keys(row);
-                    const nameKey = keys.find(k => k.toLowerCase().includes('name'));
-                    const classKey = keys.find(k => k.toLowerCase().includes('class'));
-
-                    if (nameKey && row[nameKey]) {
-                        const name = row[nameKey].trim();
-                        let classId = 'unknown';
-
-                        // Try to map class name/id
-                        if (classKey && row[classKey]) {
-                            const classVal = row[classKey].trim().toLowerCase();
-                            // try direct match or map match
-                            if (classMap[classVal]) {
-                                classId = classMap[classVal];
-                            } else {
-                                // Default to current filter or just keep as text if system allows (system expects IDs)
-                                // If we can't map, we'll just set it to "Unassigned" or ID "1" if we must.
-                                // For now, let's look for a class with ID '1' or use the first one.
-                                classId = classes[0] ? classes[0].id : '';
-                            }
-                        } else {
-                            // If no class column, use current filter if set
-                            classId = this.currentClassFilter || (classes[0] ? classes[0].id : '');
-                        }
-
-                        validStudents.push({
-                            name: name,
-                            class_id: classId
-                        });
-                    } else {
-                        skipCount++;
-                    }
-                }
-
-                if (validStudents.length > 0) {
-                    if (await Utils.showConfirm(`Ready to import ${validStudents.length} students?`, 'Import Students')) {
-                        Utils.showLoading();
-                        await APIClient.importStudents(validStudents);
-                        await this.loadStudents();
-                        Utils.hideLoading();
-                        Utils.showToast(`Successfully imported ${validStudents.length} students`, 'success');
-                    }
-                } else {
-                    Utils.showToast('No valid student data found in CSV. Headers should include "Name" and "Class".', 'error');
-                }
+                // Process Import Data
+                await this.processImportData(jsonData);
 
             } catch (error) {
                 console.error('Import error:', error);
-                Utils.showToast('Error parsing CSV file', 'error');
+                Utils.showToast('Error parsing file: ' + error.message, 'error');
             }
         };
-        reader.readAsText(file);
+
+        // Read as binary string for XLSX compatibility
+        reader.readAsBinaryString(file);
+    },
+
+    /**
+     * Process imported JSON data
+     */
+    async processImportData(data) {
+        const validStudents = [];
+        let skipCount = 0;
+
+        // Get valid classes to map names to IDs if needed
+        const classes = await APIClient.getClasses();
+        const classMap = {};
+        classes.forEach(c => {
+            classMap[c.name.toLowerCase()] = c.id;
+            classMap[c.id.toLowerCase()] = c.id;
+            // Also map clean versions (e.g. "JSS 1 A" -> "jss1a")
+            classMap[c.name.replace(/\s/g, '').toLowerCase()] = c.id;
+        });
+
+        for (const row of data) {
+            // Keys might be "Student Name", "Name", "Full Name", etc.
+            // Normalize keys to lowercase for searching
+            const keys = Object.keys(row);
+            const nameKey = keys.find(k => k.toLowerCase().includes('name'));
+            const classKey = keys.find(k => k.toLowerCase().includes('class'));
+            const genderKey = keys.find(k => k.toLowerCase().includes('gender') || k.toLowerCase().includes('sex'));
+
+            if (nameKey && row[nameKey]) {
+                const name = String(row[nameKey]).trim();
+                let classId = 'unknown';
+                let gender = '';
+
+                // Try to map class name/id
+                if (classKey && row[classKey]) {
+                    const classVal = String(row[classKey]).trim().toLowerCase();
+                    const cleanClassVal = classVal.replace(/\s/g, ''); // handle "JSS 1" vs "JSS1"
+
+                    if (classMap[classVal]) {
+                        classId = classMap[classVal];
+                    } else if (classMap[cleanClassVal]) {
+                        classId = classMap[cleanClassVal];
+                    } else {
+                        // Default to current filter or first class
+                        classId = this.currentClassFilter || (classes[0] ? classes[0].id : '');
+                    }
+                } else {
+                    // If no class column, use current filter if set
+                    classId = this.currentClassFilter || (classes[0] ? classes[0].id : '');
+                }
+
+                // Try to map gender
+                if (genderKey && row[genderKey]) {
+                    const gVal = String(row[genderKey]).trim().toLowerCase();
+                    if (gVal.startsWith('m')) gender = 'Male';
+                    else if (gVal.startsWith('f')) gender = 'Female';
+                }
+
+                validStudents.push({
+                    name: name,
+                    class_id: classId,
+                    gender: gender // New Field
+                });
+            } else {
+                skipCount++;
+            }
+        }
+
+        if (validStudents.length > 0) {
+            if (await Utils.showConfirm(`Ready to import ${validStudents.length} students?`, 'Import Students')) {
+                Utils.showLoading();
+                await APIClient.importStudents(validStudents);
+                await this.loadStudents();
+                Utils.hideLoading();
+                Utils.showToast(`Successfully imported ${validStudents.length} students`, 'success');
+            }
+        } else {
+            Utils.showToast('No valid student data found. Headers should include "Name" and optionally "Class" and "Gender".', 'error');
+        }
     },
 
     /**
