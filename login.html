@@ -194,7 +194,7 @@
         </div>
 
         <button id="loginBtn" class="auth-btn btn-primary">Sign In</button>
-        <button id="registerBtn" class="auth-btn btn-secondary">Create New Account</button>
+        <!-- <button id="registerBtn" class="auth-btn btn-secondary">Create New Account</button> -->
 
         <p id="authError" style="color: var(--error); margin-top: 15px; display: none; font-size: 0.9rem;"></p>
         <p id="authSuccess" style="color: var(--success); margin-top: 15px; display: none; font-size: 0.9rem;"></p>
@@ -288,27 +288,15 @@
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
         const loginBtn = document.getElementById('loginBtn');
-        const registerBtn = document.getElementById('registerBtn');
+        // const registerBtn = document.getElementById('registerBtn');
         const errorEl = document.getElementById('authError');
         const successEl = document.getElementById('authSuccess');
-        const googleBtn = document.getElementById('googleLoginBtn');
+        // const googleBtn = document.getElementById('googleLoginBtn');
 
         function showError(msg) { errorEl.textContent = msg; errorEl.style.display = 'block'; successEl.style.display = 'none'; }
         function showSuccess(msg) { successEl.textContent = msg; successEl.style.display = 'block'; errorEl.style.display = 'none'; }
 
-        // Google Login
-        googleBtn.addEventListener('click', () => {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(provider)
-                .then((result) => {
-                    console.log("Google Login:", result.user);
-                    window.location.href = "index.html";
-                })
-                .catch((error) => {
-                    console.error("Google Error:", error);
-                    showModal("Google Login Failed", error.message);
-                });
-        });
+        // Google Login Removed
 
         const modal = document.getElementById('alertModal');
         const modalTitle = document.getElementById('modalTitle');
@@ -409,27 +397,10 @@
                 .catch(err => handleAuthError(err));
         });
 
-        registerBtn.addEventListener('click', () => {
-            const email = emailInput.value;
-            const password = passwordInput.value;
-            if (!email || !password) return showModal("Missing Info", "Please enter both email and password.");
-            if (password.length < 6) return showModal("Weak Password", "Password must be at least 6 characters.");
-
-            firebase.auth().createUserWithEmailAndPassword(email, password)
-                .then(() => {
-                    // PARTY TIME! 🎉
-                    if (typeof Utils !== 'undefined' && Utils.triggerConfetti) {
-                        Utils.triggerConfetti();
-                    }
-                    showModal("Success!", "Account created successfully. Logging you in...", true);
-                    setTimeout(() => window.location.href = "index.html", 2000);
-                })
-                .catch(err => handleAuthError(err));
-        });
-
         // Auto-redirect disabled to show welcome animation
     </script>
 </body>
 
-</html> 
+</html>
+ 
  
