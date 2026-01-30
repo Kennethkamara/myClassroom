@@ -5,22 +5,25 @@
 
 const CACHE_NAME = 'cmt-v3';
 const urlsToCache = [
-    '/index.html',
-    '/app.html',
-    '/login.html',
-    '/styles.css',
-    '/print-styles.css',
-    '/app.js',
-    '/api-client.js',
-    '/config-manager.js',
-    '/student-manager.js',
-    '/marks-table.js',
-    '/export-handler.js',
-    '/quick-entry.js',
-    '/google-sheets-api.js',
-    '/validators.js',
-    '/utils.js',
-    '/manifest.json'
+    './',
+    './index.html',
+    './app.html',
+    './login.html',
+    './styles.css',
+    './print-styles.css',
+    './app.js',
+    './api-client.js',
+    './config-manager.js',
+    './student-manager.js',
+    './marks-table.js',
+    './export-handler.js',
+    './quick-entry.js',
+    './google-sheets-api.js',
+    './validators.js',
+    './utils.js',
+    './manifest.json',
+    './icon-192.png',
+    './icon-512.png'
 ];
 
 // Install event - cache resources
