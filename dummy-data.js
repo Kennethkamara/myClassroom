@@ -4,14 +4,14 @@
  */
 
 const DummyData = {
-    // Classes (with subdivisions 101 and 102)
+    // Classes (with subdivisions 01 and 02)
     classes: [
-        { id: 'cls_1_101', name: 'JSS 1-101' },
-        { id: 'cls_1_102', name: 'JSS 1-102' },
-        { id: 'cls_2_101', name: 'JSS 2-101' },
-        { id: 'cls_2_102', name: 'JSS 2-102' },
-        { id: 'cls_3_101', name: 'JSS 3-101' },
-        { id: 'cls_3_102', name: 'JSS 3-102' }
+        { id: 'cls_1_101', name: 'JSS1 01' },
+        { id: 'cls_1_102', name: 'JSS1 02' },
+        { id: 'cls_2_101', name: 'JSS2 01' },
+        { id: 'cls_2_102', name: 'JSS2 02' },
+        { id: 'cls_3_101', name: 'JSS3 01' },
+        { id: 'cls_3_102', name: 'JSS3 02' }
     ],
 
     // Subjects

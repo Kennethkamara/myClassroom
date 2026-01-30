@@ -268,7 +268,11 @@ const APIClient = {
         if (!this.USE_FIREBASE) return [];
 
         const user = firebase.auth().currentUser;
-        if (!user) return [];
+        if (!user) {
+            console.warn("getMarks: No user logged in");
+            // Throw specific error that can be caught
+            throw new Error("Please Log In");
+        }
 
         try {
             const q = firebase.firestore().collection("marks")

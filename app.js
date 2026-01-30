@@ -11,17 +11,27 @@ const App = {
      * Initialize application
      */
     async init() {
-        // Check authentication
-        firebase.auth().onAuthStateChanged(user => {
-            if (!user) {
-                // Not logged in, redirect to login
-                window.location.href = 'login.html';
-            } else {
-                console.log("User authenticated:", user.email);
-                this.currentUser = user;
-                this.initializeApp();
-            }
-        });
+        console.log('Initializing app...');
+
+        // Global Auth Listener
+        if (typeof firebase !== 'undefined') {
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    console.log("User authenticated:", user.email);
+                    this.currentUser = user;
+                    this.initializeApp();
+                } else {
+                    console.warn("User not logged in. Redirecting...");
+                    // If we are not on login page, redirect
+                    if (!window.location.href.includes('login.html') && !window.location.href.includes('setup.html')) {
+                        window.location.href = 'login.html';
+                    }
+                }
+            });
+        } else {
+            // Fallback if firebase not loaded (should not happen in prod)
+            this.initializeApp();
+        }
 
         // Logout handler with animation
         const logoutBtn = document.getElementById('logoutBtn');

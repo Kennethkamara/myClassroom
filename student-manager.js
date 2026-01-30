@@ -272,8 +272,8 @@ const StudentManager = {
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${student.name}</td>
-                <td>
                     <select class="form-control gender-select" data-student-id="${student.id}" data-old-gender="${student.gender || ''}" style="padding: 0.4rem; font-size: 0.9rem;">
+                        <option value="">Select Gender</option>
                         <option value="Male" ${student.gender === 'Male' ? 'selected' : ''}>♂️ Male</option>
                         <option value="Female" ${student.gender === 'Female' ? 'selected' : ''}>♀️ Female</option>
                     </select>

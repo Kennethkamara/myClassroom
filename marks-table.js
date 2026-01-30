@@ -142,7 +142,12 @@ const MarksTable = {
             Utils.hideLoading();
         } catch (error) {
             console.error('Error loading marks:', error);
-            Utils.showToast('Error loading marks. Please check your connection or try again.', 'error');
+            if (error.message.includes("Log In")) {
+                Utils.showToast('Session expired. Please log in again.', 'warning');
+                setTimeout(() => window.location.href = 'login.html', 2000);
+            } else {
+                Utils.showToast('Error loading marks. Check connection.', 'error');
+            }
             Utils.hideLoading();
         }
     },

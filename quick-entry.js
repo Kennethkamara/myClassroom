@@ -323,6 +323,7 @@ const QuickEntry = {
      */
     clearForm() {
         document.getElementById('quickStudentName').value = '';
+        document.getElementById('quickGender').value = '';
         document.getElementById('quickRawScore').value = '';
         document.getElementById('calculationPreview').textContent = 'Final: 0.00 / 10';
         document.getElementById('quickStudentName').focus();

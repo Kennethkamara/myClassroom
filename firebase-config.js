@@ -20,7 +20,16 @@ if (typeof firebase !== 'undefined') {
         // Initialize Firestore
         if (firebase.firestore) {
             const db = firebase.firestore();
-            db.enablePersistence().catch(err => console.warn("Persistence Error:", err.code));
+            db.enablePersistence({ synchronizeTabs: true })
+                .catch(err => {
+                    if (err.code == 'failed-precondition') {
+                        console.warn("Persistence failed: Multiple tabs open.");
+                    } else if (err.code == 'unimplemented') {
+                        console.warn("Persistence not supported by this browser.");
+                    } else {
+                        console.warn("Persistence Error:", err);
+                    }
+                });
         }
     } catch (e) {
         console.error("Firebase Init Error:", e);
