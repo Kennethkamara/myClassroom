@@ -248,6 +248,26 @@
         &copy; 2026 MyClassroom. Built for Teachers.
     </footer>
 
+    <!-- PWA Install Prompt -->
+    <div id="installPrompt" class="install-prompt-container"
+        style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 1000; align-items: center; justify-content: space-between; border: 1px solid #e5e7eb;">
+        <div class="install-prompt-content" style="display: flex; align-items: center; gap: 15px; width: 100%;">
+            <div class="install-icon" style="font-size: 2rem;">📲</div>
+            <div class="install-texts" style="flex: 1;">
+                <div class="install-title" style="font-weight: bold; color: var(--text-primary); margin-bottom: 2px;">
+                    Install App</div>
+                <div class="install-desc" style="font-size: 0.85rem; color: var(--text-secondary);">Add MyClassroom to
+                    your home screen!</div>
+            </div>
+            <div class="install-actions" style="display: flex; gap: 8px;">
+                <button id="installDismissBtn" class="btn btn-secondary btn-sm"
+                    style="padding: 0.4rem 0.6rem; font-size: 0.8rem; background: #f3f4f6; color: #4b5563; border: none; border-radius: 6px; cursor: pointer;">Later</button>
+                <button id="installAcceptBtn" class="btn btn-primary btn-sm"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary-blue, #00A3E0); color: white; border: none; border-radius: 6px; cursor: pointer;">Install</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Check if user is already logged in
         firebase.auth().onAuthStateChanged(user => {
@@ -266,6 +286,62 @@
                 }
             }
         });
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // PWA Install Prompt Logic
+        let deferredPrompt;
+        const installPromptEl = document.getElementById('installPrompt');
+        const installBtn = document.getElementById('installAcceptBtn');
+        const dismissBtn = document.getElementById('installDismissBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+
+            // Show the prompt IMMEDIATELY as requested
+            console.log("👋 Showing install prompt!");
+            if (installPromptEl) {
+                installPromptEl.style.display = 'flex';
+                // Add slide up animation
+                installPromptEl.style.animation = 'slideUp 0.5s ease-out forwards';
+            }
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (installPromptEl) installPromptEl.style.display = 'none';
+                if (!deferredPrompt) return;
+
+                // Show the install prompt
+                deferredPrompt.prompt();
+
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+
+                deferredPrompt = null;
+            });
+        }
+
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', () => {
+                if (installPromptEl) installPromptEl.style.display = 'none';
+            });
+        }
     </script>
 </body>
 
