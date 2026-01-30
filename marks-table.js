@@ -407,133 +407,173 @@ const MarksTable = {
         // Reset input
         event.target.value = '';
 
-        if (file.type !== 'text/csv' && !file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
-            Utils.showToast('Please upload a CSV or TXT file', 'error');
+        const validExtensions = ['.csv', '.txt', '.xlsx', '.xls'];
+        const isValid = validExtensions.some(ext => file.name.endsWith(ext));
+
+        if (!isValid) {
+            Utils.showToast('Please upload a CSV, TXT, or Excel file', 'error');
             return;
         }
 
         const reader = new FileReader();
-        reader.onload = async (e) => {
-            try {
-                const text = e.target.result;
-                const data = Utils.parseCSV(text);
 
-                if (data.length === 0) {
-                    Utils.showToast('CSV file is empty or invalid', 'error');
-                    return;
+        // Handle Excel files
+        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+            reader.onload = async (e) => {
+                try {
+                    const data = e.target.result;
+                    const workbook = XLSX.read(data, { type: 'binary' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    this.processimportedMarks(jsonData);
+                } catch (error) {
+                    console.error('Error parsing Excel:', error);
+                    Utils.showToast('Error parsing Excel file', 'error');
                 }
+            };
+            reader.readAsBinaryString(file);
+        } else {
+            // Handle CSV/TXT files
+            reader.onload = async (e) => {
+                try {
+                    const text = e.target.result;
+                    const data = Utils.parseCSV(text);
+                    this.processimportedMarks(data);
+                } catch (error) {
+                    console.error('Error parsing CSV:', error);
+                    Utils.showToast('Error parsing CSV file', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+    },
 
-                // 1. Identify missing students
-                const existingNames = new Set(this.currentStudents.map(s => s.name.toLowerCase()));
-                const newStudents = [];
-                const csvNamesOrder = []; // To preserve CSV order
+    /**
+     * Process imported marks data (Common for CSV and Excel)
+     */
+    async processimportedMarks(data) {
+        if (data.length === 0) {
+            Utils.showToast('Import file is empty or invalid', 'error');
+            return;
+        }
 
-                data.forEach(row => {
-                    const keys = Object.keys(row);
-                    const nameKey = keys.find(k => k.toLowerCase().includes('name'));
-                    if (nameKey && row[nameKey]) {
-                        const name = row[nameKey].trim();
-                        csvNamesOrder.push(name.toLowerCase());
+        try {
+            // 1. Identify missing students
+            const existingNames = new Set(this.currentStudents.map(s => s.name.toLowerCase()));
+            const newStudents = [];
 
-                        if (!existingNames.has(name.toLowerCase())) {
-                            newStudents.push(name);
-                            existingNames.add(name.toLowerCase()); // Avoid duplicates in new list
-                        }
-                    }
-                });
+            // To preserve file order for sorting later
+            const fileNamesOrder = [];
 
-                // 2. Add missing students if any
-                if (newStudents.length > 0) {
-                    if (await Utils.showConfirm(`Found ${newStudents.length} new students in CSV. Add them to this class?`, 'Import New Students')) {
-                        Utils.showLoading();
-                        for (const name of newStudents) {
-                            await APIClient.addStudent({
-                                name: name,
-                                class_id: this.selectedClass
-                            });
-                        }
-                        // Reload fresh list
-                        this.currentStudents = await APIClient.getStudentsByClass(this.selectedClass);
-                        Utils.hideLoading();
-                        Utils.showToast(`Added ${newStudents.length} new students.`, 'success');
+            data.forEach(row => {
+                const keys = Object.keys(row);
+                // Look for 'name' column case-insensitive
+                const nameKey = keys.find(k => k.toLowerCase().includes('name'));
+                if (nameKey && row[nameKey]) {
+                    const name = String(row[nameKey]).trim();
+                    fileNamesOrder.push(name.toLowerCase());
+
+                    if (!existingNames.has(name.toLowerCase())) {
+                        newStudents.push(name);
+                        existingNames.add(name.toLowerCase()); // Avoid adding same new student twice
                     }
                 }
+            });
 
-                // 3. Update Marks Data
-                const nameMap = {};
-                this.currentStudents.forEach(s => {
-                    if (s.name) nameMap[s.name.toLowerCase()] = s.id;
-                });
-
-                let matchCount = 0;
-                data.forEach(row => {
-                    const keys = Object.keys(row);
-                    const nameKey = keys.find(k => k.toLowerCase().includes('name'));
-
-                    // Mark Columns
-                    // Mark Columns
-                    const rawKey = keys.find(k => k.toLowerCase().includes('raw') || k.toLowerCase().includes('test') || k.toLowerCase().includes('score'));
-                    const addedKey = keys.find(k => k.toLowerCase().includes('added') || k.toLowerCase().includes('exam') || k.toLowerCase().includes('bonus') || k.toLowerCase().includes('ass') || k.toLowerCase().includes('class') || k.includes('20'));
-
-                    if (nameKey && row[nameKey]) {
-                        const name = row[nameKey].trim().toLowerCase();
-                        const studentId = nameMap[name];
-
-                        if (studentId) {
-                            // Ensure structure exists
-                            if (!this.marksData[studentId]) {
-                                this.marksData[studentId] = { raw_score: 0, added_mark: 0 };
-                            }
-
-                            // 1. RAW SCORE
-                            if (rawKey && row[rawKey]) {
-                                const val = parseFloat(row[rawKey]);
-                                if (!isNaN(val)) this.marksData[studentId].raw_score = val;
-                            }
-
-                            // 2. ADDED MARK
-                            if (addedKey && row[addedKey]) {
-                                const val = parseFloat(row[addedKey]);
-                                if (!isNaN(val)) {
-                                    this.marksData[studentId].added_mark = val;
-                                }
-                            } else {
-                                // If CSV column missing or empty, DEFAULT TO MAX
-                                // We trust "added_mark" is 0 if not set, so checking if falsy is okay, 
-                                // but specifically check for 0 or undefined to avoid overwriting real edits if possible (though import implies override).
-                                // Actually, simpler rule: If key missing -> Default to Max.
-                                if (!this.marksData[studentId].added_mark) {
-                                    this.marksData[studentId].added_mark = this.currentConfig.max_added_marks || 20;
-                                }
-                            }
-                            matchCount++;
-                        }
+            // 2. Add missing students if any
+            if (newStudents.length > 0) {
+                if (await Utils.showConfirm(`Found ${newStudents.length} new students in file. Add them to this class?`, 'Import New Students')) {
+                    Utils.showLoading();
+                    for (const name of newStudents) {
+                        await APIClient.addStudent({
+                            name: name,
+                            class_id: this.selectedClass,
+                            gender: 'Male' // Default
+                        });
                     }
-                });
-
-                // 4. Sort table to match CSV order
-                // We create a map of name -> index in CSV
-                const orderMap = {};
-                csvNamesOrder.forEach((name, index) => {
-                    orderMap[name] = index;
-                });
-
-                // Sort existing students: CSV names first (in order), then others
-                this.currentStudents.sort((a, b) => {
-                    const indexA = orderMap[a.name.toLowerCase()] !== undefined ? orderMap[a.name.toLowerCase()] : 999999;
-                    const indexB = orderMap[b.name.toLowerCase()] !== undefined ? orderMap[b.name.toLowerCase()] : 999999;
-                    return indexA - indexB;
-                });
-
-                this.renderMarksTable();
-                Utils.showToast(`Imported marks for ${matchCount} students. Click 'Save All Marks' to persist.`, 'success');
-
-            } catch (error) {
-                console.error('Error importing marks:', error);
-                Utils.showToast('Error parsing CSV', 'error');
-                Utils.hideLoading();
+                    // Reload fresh list
+                    this.currentStudents = await APIClient.getStudentsByClass(this.selectedClass);
+                    Utils.hideLoading();
+                    Utils.showToast(`Added ${newStudents.length} new students.`, 'success');
+                }
             }
-        };
-        reader.readAsText(file);
+
+            // 3. Update Marks Data
+            const nameMap = {};
+            this.currentStudents.forEach(s => {
+                if (s.name) nameMap[s.name.toLowerCase()] = s.id;
+            });
+
+            let matchCount = 0;
+            data.forEach(row => {
+                const keys = Object.keys(row);
+                const nameKey = keys.find(k => k.toLowerCase().includes('name'));
+
+                // Flexible Column Matching
+                const rawKey = keys.find(k => {
+                    const l = k.toLowerCase();
+                    return l.includes('raw') || (l.includes('test') && !l.includes('contribution')) || l === 'score';
+                });
+
+                // Flexible Added Mark Matching (exam, bonus, etc.)
+                const addedKey = keys.find(k => {
+                    const l = k.toLowerCase();
+                    return l.includes('added') || l.includes('exam') || l.includes('bonus') || l.includes('ass') || l.includes('class') || l.includes('20');
+                });
+
+                if (nameKey && row[nameKey]) {
+                    const name = String(row[nameKey]).trim().toLowerCase();
+                    const studentId = nameMap[name];
+
+                    if (studentId) {
+                        // Ensure structure exists
+                        if (!this.marksData[studentId]) {
+                            this.marksData[studentId] = { raw_score: 0, added_mark: 0 };
+                        }
+
+                        // 1. RAW SCORE
+                        if (rawKey && row[rawKey] !== undefined) {
+                            const val = parseFloat(row[rawKey]);
+                            if (!isNaN(val)) {
+                                this.marksData[studentId].raw_score = Math.min(val, this.currentConfig.test_marked_over);
+                            }
+                        }
+
+                        // 2. ADDED MARK
+                        if (addedKey && row[addedKey] !== undefined) {
+                            const val = parseFloat(row[addedKey]);
+                            if (!isNaN(val)) {
+                                this.marksData[studentId].added_mark = Math.min(val, this.currentConfig.max_added_marks);
+                            }
+                        } else if (!this.marksData[studentId].added_mark) {
+                            // Default if missing
+                            this.marksData[studentId].added_mark = this.currentConfig.max_added_marks || 20;
+                        }
+                        matchCount++;
+                    }
+                }
+            });
+
+            // 4. Sort table to match File order
+            const orderMap = {};
+            fileNamesOrder.forEach((name, index) => {
+                orderMap[name] = index;
+            });
+
+            this.currentStudents.sort((a, b) => {
+                const indexA = orderMap[a.name.toLowerCase()] !== undefined ? orderMap[a.name.toLowerCase()] : 999999;
+                const indexB = orderMap[b.name.toLowerCase()] !== undefined ? orderMap[b.name.toLowerCase()] : 999999;
+                return indexA - indexB;
+            });
+
+            this.renderMarksTable();
+            Utils.showToast(`Imported marks for ${matchCount} students. Click 'Save All Marks' to persist.`, 'success');
+            this.showSaveStatus('Unsaved imported data', 'saving');
+
+        } catch (error) {
+            console.error('Error processing import:', error);
+            Utils.showToast('Error processing imported data', 'error');
+            Utils.hideLoading();
+        }
     }
 };
