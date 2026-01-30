@@ -915,6 +915,19 @@ textarea {
     animation: modalSlideIn 0.3s ease;
 }
 
+@media (max-width: 480px) {
+    .modal-content {
+        width: 95%;
+        max-height: 90vh;
+        /* Prevent it from being taller than screen */
+        overflow-y: auto;
+        /* Allow scrolling inside the card if needed */
+        padding: var(--spacing-md);
+        margin: auto;
+        /* Magic centering for flex items */
+    }
+}
+
 @keyframes modalSlideIn {
     from {
         transform: translateY(-50px);
