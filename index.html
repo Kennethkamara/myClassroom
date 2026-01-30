@@ -11,6 +11,14 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="theme-color" content="#ffffff">
 
+    <!-- PWA Standalone Redirect -->
+    <script>
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+            window.location.replace("app.html");
+        }
+    </script>
+
+
     <!-- Firebase SDK (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
