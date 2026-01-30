@@ -71,7 +71,18 @@ const StudentManager = {
         const fileInput = document.getElementById('importStudentFile');
 
         if (importBtn && fileInput) {
-            importBtn.addEventListener('click', () => fileInput.click());
+            importBtn.addEventListener('click', () => {
+                const classFilter = document.getElementById('studentClassFilter');
+                if (!classFilter.value) {
+                    Utils.showToast("Please select a target Class first!", "warning");
+                    // Highlight the filter to show user where to go
+                    classFilter.focus();
+                    classFilter.style.borderColor = "var(--accent-red)";
+                    setTimeout(() => classFilter.style.borderColor = "", 2000);
+                    return;
+                }
+                fileInput.click();
+            });
 
             fileInput.addEventListener('change', (e) => this.handleImport(e));
         }
