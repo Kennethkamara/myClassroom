@@ -12,12 +12,22 @@ const MarksTable = {
     selectedClass: '',
     selectedSubject: '',
     selectedTerm: '',
+    currentSearchTerm: '', // Initialize search term
 
     /**
      * Initialize marks table
      */
     async init() {
         await this.loadSelectOptions();
+
+        // Initialize search
+        const searchInput = document.getElementById('searchMarks');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.currentSearchTerm = e.target.value.toLowerCase();
+                this.renderMarksTable();
+            });
+        }
         this.attachEventListeners();
     },
 
@@ -193,7 +203,20 @@ const MarksTable = {
             return;
         }
 
-        this.currentStudents.forEach((student, index) => {
+        // Filter students based on search term
+        let studentsToRender = this.currentStudents;
+        if (this.currentSearchTerm) {
+            studentsToRender = studentsToRender.filter(s => 
+                s.name.toLowerCase().includes(this.currentSearchTerm)
+            );
+        }
+
+        if (studentsToRender.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No students found</td></tr>';
+            return;
+        }
+
+        studentsToRender.forEach((student, index) => {
             const studentMarks = this.marksData[student.id] || { raw_score: 0, added_mark: 0 };
 
             const rawScore = studentMarks.raw_score || 0;
