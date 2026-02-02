@@ -24,7 +24,7 @@ const MarksTable = {
     /**
      * Load select options
      */
-    async loadSelectOptions() {
+    async loadSelectOptions(retryCount = 0) {
         try {
             const [classes, subjects, terms] = await Promise.all([
                 APIClient.getClasses(),
@@ -32,11 +32,21 @@ const MarksTable = {
                 APIClient.getTerms()
             ]);
 
-            this.populateSelect('marksClass', classes);
-            this.populateSelect('marksSubject', subjects);
-            this.populateSelect('marksTerm', terms);
+            // Retry logic if data is empty
+            if ((classes.length === 0 || subjects.length === 0) && retryCount < 3) {
+                console.warn('MarksTable: Data not ready yet, retrying in 1 second...');
+                setTimeout(() => this.loadSelectOptions(retryCount + 1), 1000);
+                return;
+            }
+
+            this.populateSelect('markClass', classes);
+            this.populateSelect('markSubject', subjects);
+            this.populateSelect('markTerm', terms);
         } catch (error) {
             console.error('Error loading select options:', error);
+            if (retryCount > 0) {
+                Utils.showToast('Error loading dropdown options', 'error');
+            }
         }
     },
 

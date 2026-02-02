@@ -24,7 +24,7 @@ const ConfigManager = {
     /**
      * Load options for select dropdowns
      */
-    async loadSelectOptions() {
+    async loadSelectOptions(retryCount = 0) {
         try {
             const [classes, subjects, terms] = await Promise.all([
                 APIClient.getClasses(),
@@ -32,12 +32,21 @@ const ConfigManager = {
                 APIClient.getTerms()
             ]);
 
+            // Retry logic if data is empty
+            if ((classes.length === 0 || subjects.length === 0) && retryCount < 3) {
+                console.warn('ConfigManager: Data not ready yet, retrying in 1 second...');
+                setTimeout(() => this.loadSelectOptions(retryCount + 1), 1000);
+                return;
+            }
+
             this.populateSelect('configClass', classes);
             this.populateSelect('configSubject', subjects);
             this.populateSelect('configTerm', terms);
         } catch (error) {
             console.error('Error loading select options:', error);
-            Utils.showToast('Error loading options', 'error');
+            if (retryCount > 0) {
+                Utils.showToast('Error loading options', 'error');
+            }
         }
     },
 

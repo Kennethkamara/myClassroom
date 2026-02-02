@@ -23,9 +23,17 @@ const StudentManager = {
     /**
      * Load options for select dropdowns
      */
-    async loadSelectOptions() {
+    async loadSelectOptions(retryCount = 0) {
         try {
             const classes = await APIClient.getClasses();
+            
+            // Retry logic if data is empty
+            if (classes.length === 0 && retryCount < 3) {
+                console.warn('StudentManager: Data not ready yet, retrying in 1 second...');
+                setTimeout(() => this.loadSelectOptions(retryCount + 1), 1000);
+                return;
+            }
+            
             this.classes = classes; // Save for later use
 
             this.populateSelect('studentClassFilter', classes, true);
