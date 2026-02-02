@@ -186,17 +186,9 @@ const MarksTable = {
         this.currentStudents.forEach((student, index) => {
             const studentMarks = this.marksData[student.id] || { raw_score: 0, added_mark: 0 };
 
-            // **USE CONFIG VALUE AS DEFAULT** - If no saved data, use config max_added_marks
+            // Use existing values - do NOT auto-fill from config
             const rawScore = studentMarks.raw_score || 0;
-            const addedMark = studentMarks.added_mark !== undefined ? studentMarks.added_mark : this.currentConfig.max_added_marks;
-
-            // Update marksData with config value if it was default
-            if (studentMarks.added_mark === undefined || studentMarks.added_mark === 0) {
-                this.marksData[student.id] = {
-                    raw_score: rawScore,
-                    added_mark: this.currentConfig.max_added_marks
-                };
-            }
+            const addedMark = studentMarks.added_mark || 0;
 
             const tr = document.createElement('tr');
             tr.dataset.studentId = student.id;
@@ -212,7 +204,7 @@ const MarksTable = {
             nameTd.classList.add('readonly-cell');
             tr.appendChild(nameTd);
 
-            // Raw test score (editable) - NO MAX LIMIT
+            // Raw test score (editable) - from imported marks
             const rawScoreCell = document.createElement('td');
             const rawScoreInput = document.createElement('input');
             rawScoreInput.type = 'number';
@@ -226,11 +218,11 @@ const MarksTable = {
             rawScoreCell.appendChild(rawScoreInput);
             tr.appendChild(rawScoreCell);
 
-            // Added mark (editable) - Shows config value by default
+            // Added mark (editable) - MANUAL EDIT per student
             const addedMarkCell = document.createElement('td');
             const addedMarkInput = document.createElement('input');
             addedMarkInput.type = 'number';
-            addedMarkInput.value = addedMark; // Use config value as default
+            addedMarkInput.value = addedMark;
             addedMarkInput.min = '0';
             addedMarkInput.step = '0.5';
             addedMarkInput.dataset.field = 'added_mark';

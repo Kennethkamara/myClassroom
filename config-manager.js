@@ -118,17 +118,12 @@ const ConfigManager = {
 
         // Only update if marks table is viewing same class/subject/term
         if (marksClass === configClass && marksSubject === configSubject && marksTerm === configTerm) {
-            // Update MarksTable config with typed values (live!)
+            // Update MarksTable config with typed values (for calculations only)
             window.MarksTable.currentConfig.test_marked_over = testMarkedOver;
             window.MarksTable.currentConfig.max_added_marks = maxAddedMarks;
             window.MarksTable.currentConfig.test_contribution = testContribution;
 
-            // **UPDATE ALL STUDENTS' ADDED MARKS** to the new config value
-            Object.keys(window.MarksTable.marksData).forEach(studentId => {
-                window.MarksTable.marksData[studentId].added_mark = maxAddedMarks;
-            });
-
-            // Re-render table with new config and values
+            // Re-render table to recalculate with new config values
             window.MarksTable.renderMarksTable();
 
             // Update display in marks table header
