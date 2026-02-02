@@ -98,13 +98,18 @@ const MarksTable = {
 
         try {
             Utils.showLoading();
+            console.log('[Mobile Debug] Starting loadMarks...');
+            console.log('[Mobile Debug] Firebase available:', typeof firebase !== 'undefined');
+            console.log('[Mobile Debug] Current user:', firebase?.auth()?.currentUser?.email);
 
             // Load configuration
+            console.log('[Mobile Debug] Loading configuration...');
             this.currentConfig = await APIClient.getConfiguration(
                 this.selectedClass,
                 this.selectedSubject,
                 this.selectedTerm
             );
+            console.log('[Mobile Debug] Config loaded:', this.currentConfig);
 
             // Display configuration
             document.getElementById('displayMarkedOver').textContent = this.currentConfig.test_marked_over;
@@ -112,15 +117,19 @@ const MarksTable = {
             document.getElementById('configDisplay').style.display = 'flex';
 
             // Load students for this class
+            console.log('[Mobile Debug] Loading students...');
             this.currentStudents = await APIClient.getStudentsByClass(this.selectedClass);
+            console.log('[Mobile Debug] Students loaded:', this.currentStudents.length);
             this.currentStudents = Utils.sortBy(this.currentStudents, 'name', true);
 
             // Load existing marks
+            console.log('[Mobile Debug] Loading marks...');
             this.currentMarks = await APIClient.getMarks(
                 this.selectedClass,
                 this.selectedSubject,
                 this.selectedTerm
             );
+            console.log('[Mobile Debug] Marks loaded:', this.currentMarks.length);
 
             // Build marks data map
             this.marksData = {};
@@ -132,24 +141,31 @@ const MarksTable = {
             });
 
             // Render table
+            console.log('[Mobile Debug] Rendering table...');
             this.renderMarksTable();
 
             // Show table
             document.getElementById('marksTableContainer').style.display = 'block';
             document.getElementById('marksEmptyState').style.display = 'none';
 
-            Utils.hideLoading();
+            console.log('[Mobile Debug] Load complete!');
             Utils.hideLoading();
         } catch (error) {
-            console.error('Error loading marks:', error);
+            console.error('[Mobile Debug] Error in loadMarks:', error);
+            console.error('[Mobile Debug] Error name:', error.name);
+            console.error('[Mobile Debug] Error message:', error.message);
+            console.error('[Mobile Debug] Error stack:', error.stack);
+            
+            Utils.hideLoading();
+            
             if (error.message.includes("Log In")) {
                 Utils.showToast('Session expired. Please log in again.', 'warning');
                 setTimeout(() => window.location.href = 'login.html', 2000);
             } else {
-                // Show actual error for debugging
-                Utils.showToast(`Error: ${error.message}`, 'error');
+                // Show detailed error for debugging
+                const errorMsg = `Error loading marks: ${error.name} - ${error.message}. Check console for details.`;
+                Utils.showToast(errorMsg, 'error');
             }
-            Utils.hideLoading();
         }
     },
 
