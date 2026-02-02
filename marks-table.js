@@ -186,6 +186,16 @@ const MarksTable = {
         this.currentStudents.forEach((student, index) => {
             const studentMarks = this.marksData[student.id] || { raw_score: 0, added_mark: 0 };
 
+            // **CAP VALUES AT CURRENT CONFIG LIMITS** - Apply configuration retroactively
+            const cappedRawScore = Math.min(studentMarks.raw_score, this.currentConfig.test_marked_over);
+            const cappedAddedMark = Math.min(studentMarks.added_mark, this.currentConfig.max_added_marks);
+
+            // Update marksData with capped values so calculations use current limits
+            this.marksData[student.id] = {
+                raw_score: cappedRawScore,
+                added_mark: cappedAddedMark
+            };
+
             const tr = document.createElement('tr');
             tr.dataset.studentId = student.id;
 
@@ -200,11 +210,11 @@ const MarksTable = {
             nameTd.classList.add('readonly-cell'); // Keep original class
             tr.appendChild(nameTd);
 
-            // Raw test score (editable)
+            // Raw test score (editable) - use CAPPED value
             const rawScoreCell = document.createElement('td');
             const rawScoreInput = document.createElement('input');
             rawScoreInput.type = 'number';
-            rawScoreInput.value = studentMarks.raw_score;
+            rawScoreInput.value = cappedRawScore; // Display capped value
             rawScoreInput.min = '0';
             rawScoreInput.max = this.currentConfig.test_marked_over;
             rawScoreInput.step = '0.5';
@@ -215,11 +225,11 @@ const MarksTable = {
             rawScoreCell.appendChild(rawScoreInput);
             tr.appendChild(rawScoreCell);
 
-            // Added mark (editable)
+            // Added mark (editable) - use CAPPED value
             const addedMarkCell = document.createElement('td');
             const addedMarkInput = document.createElement('input');
             addedMarkInput.type = 'number';
-            addedMarkInput.value = studentMarks.added_mark;
+            addedMarkInput.value = cappedAddedMark; // Display capped value
             addedMarkInput.min = '0';
             addedMarkInput.max = this.currentConfig.max_added_marks;
             addedMarkInput.step = '0.5';
@@ -230,13 +240,13 @@ const MarksTable = {
             addedMarkCell.appendChild(addedMarkInput);
             tr.appendChild(addedMarkCell);
 
-            // Final contribution (calculated)
+            // Final contribution (calculated) - uses CAPPED values
             const finalCell = document.createElement('td');
             finalCell.className = 'calculated-cell';
             finalCell.dataset.studentId = student.id;
             const finalValue = Validators.calculateFinalContributionFormatted(
-                studentMarks.raw_score,
-                studentMarks.added_mark,
+                cappedRawScore, // Use capped value
+                cappedAddedMark, // Use capped value
                 this.currentConfig.test_marked_over,
                 this.currentConfig.test_contribution || 10
             );

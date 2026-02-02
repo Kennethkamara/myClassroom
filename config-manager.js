@@ -168,6 +168,21 @@ const ConfigManager = {
 
             Utils.hideLoading();
             Utils.showToast('Configuration saved successfully!', 'success');
+            
+            // **IMMEDIATELY RELOAD MARKS TABLE** if currently viewing same class/subject/term
+            // This makes the new config limits apply to existing marks data
+            if (window.MarksTable) {
+                const marksClass = document.getElementById('marksClass')?.value;
+                const marksSubject = document.getElementById('marksSubject')?.value;
+                const marksTerm = document.getElementById('marksTerm')?.value;
+                
+                // If marks table is loaded for the same class/subject/term we just configured
+                if (marksClass === classId && marksSubject === subjectId && marksTerm === termId) {
+                    console.log('🔄 Reloading marks table to apply new configuration limits...');
+                    await MarksTable.loadMarks();
+                    Utils.showToast('Marks updated with new configuration!', 'info');
+                }
+            }
         } catch (error) {
             console.error('Error saving configuration:', error);
             Utils.showToast('Error saving configuration', 'error');
