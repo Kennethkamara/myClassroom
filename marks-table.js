@@ -314,7 +314,6 @@ const MarksTable = {
         // Validation removed: User requested full manual control without limits
         // The red error styling was blocking the "Live Update" visualization
         // So we remove the error class to allow any value.
-        const input = event.target;
         input.classList.remove('error');
         
         // Remove error from row
