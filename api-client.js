@@ -185,14 +185,15 @@ const APIClient = {
      * Delete student
      */
     async deleteStudent(studentId) {
-        if (this.USE_DUMMY_DATA) {
-            const students = Utils.getLocalStorage(this.STORAGE_KEYS.STUDENTS, []);
-            const filtered = students.filter(s => s.id !== studentId);
-            Utils.setLocalStorage(this.STORAGE_KEYS.STUDENTS, filtered);
-            return true;
-        }
+        if (!this.USE_FIREBASE) return;
 
-        // TODO: Implement Google Sheets API call
+        try {
+            await firebase.firestore().collection("students").doc(studentId).delete();
+            return { status: 'success' };
+        } catch (e) {
+            console.error("Error deleting student: ", e);
+            throw e;
+        }
     },
 
     /**
