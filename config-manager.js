@@ -79,6 +79,57 @@ const ConfigManager = {
         if (saveBtn) {
             Utils.addClickHandler(saveBtn, () => this.saveConfiguration());
         }
+
+        // **LIVE UPDATE LISTENERS** - Update marks table as user types (no save needed)
+        const testMarkedOverInput = document.getElementById('testMarkedOver');
+        const maxAddedMarksInput = document.getElementById('maxAddedMarks');
+        const testContributionInput = document.getElementById('testContribution');
+
+        if (testMarkedOverInput) {
+            testMarkedOverInput.addEventListener('input', () => this.handleLiveConfigUpdate());
+        }
+        if (maxAddedMarksInput) {
+            maxAddedMarksInput.addEventListener('input', () => this.handleLiveConfigUpdate());
+        }
+        if (testContributionInput) {
+            testContributionInput.addEventListener('input', () => this.handleLiveConfigUpdate());
+        }
+    },
+
+    /**
+     * Handle live configuration updates (as user types - no save needed)
+     */
+    handleLiveConfigUpdate() {
+        // Get current typed values
+        const testMarkedOver = parseFloat(document.getElementById('testMarkedOver').value) || 100;
+        const maxAddedMarks = parseFloat(document.getElementById('maxAddedMarks').value) || 20;
+        const testContribution = parseFloat(document.getElementById('testContribution').value) || 10;
+
+        // Check if marks table is loaded
+        if (!window.MarksTable || !window.MarksTable.currentConfig) return;
+
+        const configClass = document.getElementById('configClass').value;
+        const configSubject = document.getElementById('configSubject').value;
+        const configTerm = document.getElementById('configTerm').value;
+
+        const marksClass = document.getElementById('marksClass')?.value;
+        const marksSubject = document.getElementById('marksSubject')?.value;
+        const marksTerm = document.getElementById('marksTerm')?.value;
+
+        // Only update if marks table is viewing same class/subject/term
+        if (marksClass === configClass && marksSubject === configSubject && marksTerm === configTerm) {
+            // Update MarksTable config with typed values (live!)
+            window.MarksTable.currentConfig.test_marked_over = testMarkedOver;
+            window.MarksTable.currentConfig.max_added_marks = maxAddedMarks;
+            window.MarksTable.currentConfig.test_contribution = testContribution;
+
+            // Re-render table with new config (caps values and recalculates)
+            window.MarksTable.renderMarksTable();
+
+            // Update display in marks table header
+            document.getElementById('displayMarkedOver').textContent = testMarkedOver;
+            document.getElementById('displayMaxAdded').textContent = maxAddedMarks;
+        }
     },
 
     /**
