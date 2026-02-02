@@ -186,9 +186,23 @@ const MarksTable = {
         this.currentStudents.forEach((student, index) => {
             const studentMarks = this.marksData[student.id] || { raw_score: 0, added_mark: 0 };
 
-            // Use existing values - do NOT auto-fill from config
             const rawScore = studentMarks.raw_score || 0;
-            const addedMark = studentMarks.added_mark || 0;
+            
+            // **AUTO-FILL ADDED MARK FROM CONFIG**
+            // If the added mark is 0 or undefined, OR if we want to enforce the config standard (simplest for "lazy user")
+            // We'll use the current MarksData value if valid, otherwise default to config default
+            // However, based on user request "I want to add for all", the ConfigManager update handles the live change.
+            // Here we ensure initial load aligns or defaults correctly.
+            let addedMark = studentMarks.added_mark;
+            
+            // If data is empty/new, default to config
+            if (addedMark === undefined) {
+                 addedMark = this.currentConfig.max_added_marks;
+                 // Save back to local data structure
+                 if (!this.marksData[student.id]) this.marksData[student.id] = {};
+                 this.marksData[student.id].added_mark = addedMark;
+                 this.marksData[student.id].raw_score = rawScore;
+            }
 
             const tr = document.createElement('tr');
             tr.dataset.studentId = student.id;
@@ -218,7 +232,7 @@ const MarksTable = {
             rawScoreCell.appendChild(rawScoreInput);
             tr.appendChild(rawScoreCell);
 
-            // Added mark (editable) - MANUAL EDIT per student
+            // Added mark (editable) - Defaulted from Config
             const addedMarkCell = document.createElement('td');
             const addedMarkInput = document.createElement('input');
             addedMarkInput.type = 'number';

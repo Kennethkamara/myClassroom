@@ -96,9 +96,6 @@ const ConfigManager = {
         }
     },
 
-    /**
-     * Handle live configuration updates (as user types - no save needed)
-     */
     handleLiveConfigUpdate() {
         // Get current typed values
         const testMarkedOver = parseFloat(document.getElementById('testMarkedOver').value) || 100;
@@ -118,12 +115,23 @@ const ConfigManager = {
 
         // Only update if marks table is viewing same class/subject/term
         if (marksClass === configClass && marksSubject === configSubject && marksTerm === configTerm) {
-            // Update MarksTable config with typed values (for calculations only)
+            // Update MarksTable config with typed values
             window.MarksTable.currentConfig.test_marked_over = testMarkedOver;
-            window.MarksTable.currentConfig.max_added_marks = maxAddedMarks;
+            window.MarksTable.currentConfig.max_added_marks = maxAddedMarks; // This acts as the default added mark value now
             window.MarksTable.currentConfig.test_contribution = testContribution;
 
-            // Re-render table to recalculate with new config values
+            // **BULK UPDATE ALL STUDENTS** to the new added mark value
+            // The user wants configuration to control the marks for all students (lazy mode)
+            if (window.MarksTable.marksData) {
+                Object.keys(window.MarksTable.marksData).forEach(studentId => {
+                    // Update only if the student exists in data
+                    if (window.MarksTable.marksData[studentId]) {
+                        window.MarksTable.marksData[studentId].added_mark = maxAddedMarks;
+                    }
+                });
+            }
+
+            // Re-render table with new config and updated values
             window.MarksTable.renderMarksTable();
 
             // Update display in marks table header
