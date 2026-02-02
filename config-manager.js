@@ -228,8 +228,8 @@ const ConfigManager = {
             Utils.hideLoading();
             Utils.showToast('Configuration saved successfully!', 'success');
             
-            // **IMMEDIATELY RELOAD MARKS TABLE** if currently viewing same class/subject/term
-            // This makes the new config limits apply to existing marks data
+            // **IMMEDIATELY UPDATE MARKS TABLE** if currently viewing same class/subject/term
+            // This applies the new config limits AND updates the added marks for all students
             if (window.MarksTable) {
                 const marksClass = document.getElementById('marksClass')?.value;
                 const marksSubject = document.getElementById('marksSubject')?.value;
@@ -237,8 +237,25 @@ const ConfigManager = {
                 
                 // If marks table is loaded for the same class/subject/term we just configured
                 if (marksClass === classId && marksSubject === subjectId && marksTerm === termId) {
-                    console.log('🔄 Reloading marks table to apply new configuration limits...');
-                    await MarksTable.loadMarks();
+                    console.log('🔄 Updating marks table with new configuration...');
+                    
+                    // Update MarksTable config
+                    window.MarksTable.currentConfig.test_marked_over = parseFloat(testMarkedOver);
+                    window.MarksTable.currentConfig.max_added_marks = parseFloat(maxAddedMarks);
+                    window.MarksTable.currentConfig.test_contribution = parseFloat(testContribution);
+
+                    // **BULK UPDATE ALL STUDENTS** to the new added mark value locally
+                    // This ensures "IMMEDIATE CHANGE NO REFRESH" as requested
+                    if (window.MarksTable.marksData) {
+                        Object.keys(window.MarksTable.marksData).forEach(studentId => {
+                            if (window.MarksTable.marksData[studentId]) {
+                                window.MarksTable.marksData[studentId].added_mark = parseFloat(maxAddedMarks);
+                            }
+                        });
+                    }
+
+                    // Re-render table locally (fast, no DB fetch)
+                    window.MarksTable.renderMarksTable();
                     Utils.showToast('Marks updated with new configuration!', 'info');
                 }
             }

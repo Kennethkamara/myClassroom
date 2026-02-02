@@ -175,12 +175,11 @@ const QuickEntry = {
      */
     async saveQuickEntry() {
         const studentName = document.getElementById('quickStudentName').value.trim();
-        const gender = document.getElementById('quickGender').value;
+        // Gender removed from quick entry
         const rawScore = document.getElementById('quickRawScore').value;
 
         console.log('=== QUICK ENTRY SAVE ===');
         console.log('Student Name:', studentName);
-        console.log('Gender:', gender);
         console.log('Raw Score:', rawScore);
         console.log('Config:', this.currentConfig);
 
@@ -189,13 +188,6 @@ const QuickEntry = {
         if (!nameValidation.valid) {
             Utils.showToast(nameValidation.error, 'error');
             document.getElementById('quickStudentName').focus();
-            return;
-        }
-
-        // Validate gender
-        if (!gender) {
-            Utils.showToast('Please select gender', 'error');
-            document.getElementById('quickGender').focus();
             return;
         }
 
@@ -221,10 +213,13 @@ const QuickEntry = {
 
             if (!student) {
                 console.log('Student not found, creating new student...');
-                // Create new student
+                // Create new student - Default to empty gender or handle in backend if required, 
+                // but since UI removed it, we pass empty string or let backend handle default.
+                // Assuming backend allows missing gender or we default to 'Unknown' if strictly required,
+                // but for now removing the explicit gender field from pass.
                 student = await APIClient.addStudent({
                     name: studentName,
-                    gender: gender,
+                    gender: '', // Default or empty since removed from UI
                     class_id: this.selectedClass
                 });
                 console.log('New student created:', student);
@@ -323,7 +318,7 @@ const QuickEntry = {
      */
     clearForm() {
         document.getElementById('quickStudentName').value = '';
-        document.getElementById('quickGender').value = '';
+        // Gender removed
         document.getElementById('quickRawScore').value = '';
         document.getElementById('calculationPreview').textContent = 'Final: 0.00 / 10';
         document.getElementById('quickStudentName').focus();
