@@ -301,43 +301,52 @@ const MarksTable = {
     validateField(event) {
         const input = event.target;
         const field = input.dataset.field;
-        const value = input.value;
-
-        let validation;
-        if (field === 'raw_score') {
-            validation = Validators.validateRawScore(value, this.currentConfig.test_marked_over);
-        } else if (field === 'added_mark') {
-            validation = Validators.validateAddedMark(value, this.currentConfig.max_added_marks);
-        }
-
-        if (!validation.valid) {
-            input.classList.add('error');
-            Utils.showToast(validation.error, 'error');
-
-            // Mark row as error
-            const row = input.closest('tr');
-            if (row) {
-                row.classList.add('error-row');
-            }
-        } else {
-            input.classList.remove('error');
-
-            // Remove error from row if no other errors
-            const row = input.closest('tr');
-            if (row) {
-                const otherErrors = row.querySelectorAll('input.error');
-                if (otherErrors.length === 0) {
-                    row.classList.remove('error-row');
-                }
-            }
+        // Validation removed: User requested full manual control without limits
+        // The red error styling was blocking the "Live Update" visualization
+        // So we remove the error class to allow any value.
+        const input = event.target;
+        input.classList.remove('error');
+        
+        // Remove error from row
+        const row = input.closest('tr');
+        if (row) {
+            row.classList.remove('error-row');
         }
     },
 
     /**
-     * Update final contribution cell for a student
+     * Update final contribution cell and sync inputs for a student
      */
     updateFinalContribution(studentId) {
         const marks = this.marksData[studentId] || { raw_score: 0, added_mark: 0 };
+        
+        // SYNC INPUTS: Ensure the input fields match the data model
+        // This is critical for the "Live Config Update" to reflect in the input box immediately
+        const addedMarkInput = document.querySelector(`input[dataset-field="added_mark"][dataset-student-id="${studentId}"]`) || 
+                               document.querySelector(`tr[data-student-id="${studentId}"] input[data-field="added_mark"]`);
+        
+        if (addedMarkInput && parseFloat(addedMarkInput.value) !== marks.added_mark) {
+            addedMarkInput.value = marks.added_mark;
+        }
+
+        // Update Total Score calculation
+        const totalScoreCell = document.querySelector(`.calculated-cell[data-student-id="${studentId}"]:nth-of-type(1)`) ||
+                               document.querySelector(`tr[data-student-id="${studentId}"] .calculated-cell`);
+                               
+        if (totalScoreCell && totalScoreCell.textContent) {
+             // Re-calculate simply: Raw + Added
+             // Note: We need to find the specific cell correctly. 
+             // The render function creates two .calculated-cell elements.
+             // The first one is Total Score, the second is Final Contribution.
+             // Let's target parent row to be safe.
+             const row = document.querySelector(`tr[data-student-id="${studentId}"]`);
+             if (row) {
+                 const totalCell = row.querySelectorAll('.calculated-cell')[0];
+                 const totalVal = (marks.raw_score || 0) + (marks.added_mark || 0);
+                 if (totalCell) totalCell.textContent = Utils.formatNumber(totalVal, 2);
+             }
+        }
+
         const finalValue = Validators.calculateFinalContributionFormatted(
             marks.raw_score,
             marks.added_mark,
@@ -346,8 +355,16 @@ const MarksTable = {
         );
 
         const finalCell = document.querySelector(`.calculated-cell[data-student-id="${studentId}"]`);
-        if (finalCell) {
-            finalCell.textContent = finalValue;
+        // We need to target the LAST calculated cell which is Final Contribution
+        const row = document.querySelector(`tr[data-student-id="${studentId}"]`);
+        if (row) {
+             const finalContribCell = row.querySelectorAll('.calculated-cell');
+             if (finalContribCell.length > 1) {
+                 finalContribCell[1].textContent = finalValue;
+             } else if (finalContribCell.length === 1) {
+                 // Fallback if structure is different
+                 finalContribCell[0].textContent = finalValue; 
+             }
         }
     },
 

@@ -127,13 +127,24 @@ const ConfigManager = {
                     // Update only if the student exists in data
                     if (window.MarksTable.marksData[studentId]) {
                         window.MarksTable.marksData[studentId].added_mark = maxAddedMarks;
+                        
+                        // FORCE UPDATE UI ROW IMMEDIATELY
+                        window.MarksTable.updateFinalContribution(studentId);
                     }
                 });
             }
 
-            // Re-render table with new config and updated values
-            window.MarksTable.renderMarksTable();
-
+            // Also re-render table to be safe (ensure headers and everything aligns)
+            // But the loop above handles the immediate row updates
+            // We debounce this slightly to avoid UI flicker if typing fast, 
+            // but for "instant" feel we leave it direct.
+            // Actually, we might not need full render if we updated rows, 
+            // but let's keep render for safety of total structure.
+            // window.MarksTable.renderMarksTable(); <-- Removed to prevent input focus loss while typing
+            
+            // Instead of full re-render (which kills focus), we rely on updateFinalContribution from the loop above
+            // to update the values in the inputs and the calculated cells.
+            
             // Update display in marks table header
             document.getElementById('displayMarkedOver').textContent = testMarkedOver;
             document.getElementById('displayMaxAdded').textContent = maxAddedMarks;
