@@ -186,15 +186,9 @@ const MarksTable = {
         this.currentStudents.forEach((student, index) => {
             const studentMarks = this.marksData[student.id] || { raw_score: 0, added_mark: 0 };
 
-            // **CAP VALUES AT CURRENT CONFIG LIMITS** - Apply configuration retroactively
-            const cappedRawScore = Math.min(studentMarks.raw_score, this.currentConfig.test_marked_over);
-            const cappedAddedMark = Math.min(studentMarks.added_mark, this.currentConfig.max_added_marks);
-
-            // Update marksData with capped values so calculations use current limits
-            this.marksData[student.id] = {
-                raw_score: cappedRawScore,
-                added_mark: cappedAddedMark
-            };
+            // **NO CAPPING** - Use exact values as entered by user
+            const rawScore = studentMarks.raw_score;
+            const addedMark = studentMarks.added_mark;
 
             const tr = document.createElement('tr');
             tr.dataset.studentId = student.id;
@@ -207,16 +201,16 @@ const MarksTable = {
             // Student Name (Read-only)
             const nameTd = document.createElement('td');
             nameTd.textContent = student.name;
-            nameTd.classList.add('readonly-cell'); // Keep original class
+            nameTd.classList.add('readonly-cell');
             tr.appendChild(nameTd);
 
-            // Raw test score (editable) - use CAPPED value
+            // Raw test score (editable) - NO MAX LIMIT
             const rawScoreCell = document.createElement('td');
             const rawScoreInput = document.createElement('input');
             rawScoreInput.type = 'number';
-            rawScoreInput.value = cappedRawScore; // Display capped value
+            rawScoreInput.value = rawScore;
             rawScoreInput.min = '0';
-            rawScoreInput.max = this.currentConfig.test_marked_over;
+            // NO MAX - user can enter any value
             rawScoreInput.step = '0.5';
             rawScoreInput.dataset.field = 'raw_score';
             rawScoreInput.dataset.studentId = student.id;
@@ -225,13 +219,13 @@ const MarksTable = {
             rawScoreCell.appendChild(rawScoreInput);
             tr.appendChild(rawScoreCell);
 
-            // Added mark (editable) - use CAPPED value
+            // Added mark (editable) - NO MAX LIMIT
             const addedMarkCell = document.createElement('td');
             const addedMarkInput = document.createElement('input');
             addedMarkInput.type = 'number';
-            addedMarkInput.value = cappedAddedMark; // Display capped value
+            addedMarkInput.value = addedMark;
             addedMarkInput.min = '0';
-            addedMarkInput.max = this.currentConfig.max_added_marks;
+            // NO MAX - user can enter any value
             addedMarkInput.step = '0.5';
             addedMarkInput.dataset.field = 'added_mark';
             addedMarkInput.dataset.studentId = student.id;
@@ -240,25 +234,17 @@ const MarksTable = {
             addedMarkCell.appendChild(addedMarkInput);
             tr.appendChild(addedMarkCell);
 
-            // Final contribution (calculated) - uses CAPPED values
+            // Final contribution (calculated)
             const finalCell = document.createElement('td');
             finalCell.className = 'calculated-cell';
             finalCell.dataset.studentId = student.id;
             
-            // Debug logging
-            console.log(`[Calculation Debug] Student: ${student.name}`);
-            console.log(`  Raw Score: ${cappedRawScore}`);
-            console.log(`  Added Mark: ${cappedAddedMark}`);
-            console.log(`  Test Marked Over: ${this.currentConfig.test_marked_over}`);
-            console.log(`  Test Contribution: ${this.currentConfig.test_contribution || 10}`);
-            
             const finalValue = Validators.calculateFinalContributionFormatted(
-                cappedRawScore, // Use capped value
-                cappedAddedMark, // Use capped value
+                rawScore,
+                addedMark,
                 this.currentConfig.test_marked_over,
                 this.currentConfig.test_contribution || 10
             );
-            console.log(`  Final Value: ${finalValue}`);
             
             finalCell.textContent = finalValue;
             tr.appendChild(finalCell);
