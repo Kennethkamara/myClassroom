@@ -234,6 +234,14 @@ const MarksTable = {
             addedMarkCell.appendChild(addedMarkInput);
             tr.appendChild(addedMarkCell);
 
+            // **TOTAL SCORE** (Raw + Added) - Read-only calculated field
+            const totalScoreCell = document.createElement('td');
+            totalScoreCell.className = 'calculated-cell';
+            totalScoreCell.dataset.studentId = student.id;
+            const totalScore = rawScore + addedMark;
+            totalScoreCell.textContent = Utils.formatNumber(totalScore, 2);
+            tr.appendChild(totalScoreCell);
+
             // Final contribution (calculated)
             const finalCell = document.createElement('td');
             finalCell.className = 'calculated-cell';
