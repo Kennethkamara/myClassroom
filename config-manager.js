@@ -123,7 +123,12 @@ const ConfigManager = {
             window.MarksTable.currentConfig.max_added_marks = maxAddedMarks;
             window.MarksTable.currentConfig.test_contribution = testContribution;
 
-            // Re-render table with new config (caps values and recalculates)
+            // **UPDATE ALL STUDENTS' ADDED MARKS** to the new config value
+            Object.keys(window.MarksTable.marksData).forEach(studentId => {
+                window.MarksTable.marksData[studentId].added_mark = maxAddedMarks;
+            });
+
+            // Re-render table with new config and values
             window.MarksTable.renderMarksTable();
 
             // Update display in marks table header

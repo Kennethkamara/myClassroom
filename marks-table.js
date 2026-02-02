@@ -179,16 +179,24 @@ const MarksTable = {
         tbody.innerHTML = '';
 
         if (this.currentStudents.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No students in this class</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No students in this class</td></tr>';
             return;
         }
 
         this.currentStudents.forEach((student, index) => {
             const studentMarks = this.marksData[student.id] || { raw_score: 0, added_mark: 0 };
 
-            // **NO CAPPING** - Use exact values as entered by user
-            const rawScore = studentMarks.raw_score;
-            const addedMark = studentMarks.added_mark;
+            // **USE CONFIG VALUE AS DEFAULT** - If no saved data, use config max_added_marks
+            const rawScore = studentMarks.raw_score || 0;
+            const addedMark = studentMarks.added_mark !== undefined ? studentMarks.added_mark : this.currentConfig.max_added_marks;
+
+            // Update marksData with config value if it was default
+            if (studentMarks.added_mark === undefined || studentMarks.added_mark === 0) {
+                this.marksData[student.id] = {
+                    raw_score: rawScore,
+                    added_mark: this.currentConfig.max_added_marks
+                };
+            }
 
             const tr = document.createElement('tr');
             tr.dataset.studentId = student.id;
@@ -210,7 +218,6 @@ const MarksTable = {
             rawScoreInput.type = 'number';
             rawScoreInput.value = rawScore;
             rawScoreInput.min = '0';
-            // NO MAX - user can enter any value
             rawScoreInput.step = '0.5';
             rawScoreInput.dataset.field = 'raw_score';
             rawScoreInput.dataset.studentId = student.id;
@@ -219,13 +226,12 @@ const MarksTable = {
             rawScoreCell.appendChild(rawScoreInput);
             tr.appendChild(rawScoreCell);
 
-            // Added mark (editable) - NO MAX LIMIT
+            // Added mark (editable) - Shows config value by default
             const addedMarkCell = document.createElement('td');
             const addedMarkInput = document.createElement('input');
             addedMarkInput.type = 'number';
-            addedMarkInput.value = addedMark;
+            addedMarkInput.value = addedMark; // Use config value as default
             addedMarkInput.min = '0';
-            // NO MAX - user can enter any value
             addedMarkInput.step = '0.5';
             addedMarkInput.dataset.field = 'added_mark';
             addedMarkInput.dataset.studentId = student.id;
