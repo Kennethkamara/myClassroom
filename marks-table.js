@@ -244,12 +244,22 @@ const MarksTable = {
             const finalCell = document.createElement('td');
             finalCell.className = 'calculated-cell';
             finalCell.dataset.studentId = student.id;
+            
+            // Debug logging
+            console.log(`[Calculation Debug] Student: ${student.name}`);
+            console.log(`  Raw Score: ${cappedRawScore}`);
+            console.log(`  Added Mark: ${cappedAddedMark}`);
+            console.log(`  Test Marked Over: ${this.currentConfig.test_marked_over}`);
+            console.log(`  Test Contribution: ${this.currentConfig.test_contribution || 10}`);
+            
             const finalValue = Validators.calculateFinalContributionFormatted(
                 cappedRawScore, // Use capped value
                 cappedAddedMark, // Use capped value
                 this.currentConfig.test_marked_over,
                 this.currentConfig.test_contribution || 10
             );
+            console.log(`  Final Value: ${finalValue}`);
+            
             finalCell.textContent = finalValue;
             tr.appendChild(finalCell);
 
