@@ -39,9 +39,9 @@ const MarksTable = {
                 return;
             }
 
-            this.populateSelect('markClass', classes);
-            this.populateSelect('markSubject', subjects);
-            this.populateSelect('markTerm', terms);
+            this.populateSelect('marksClass', classes);
+            this.populateSelect('marksSubject', subjects);
+            this.populateSelect('marksTerm', terms);
         } catch (error) {
             console.error('Error loading select options:', error);
             if (retryCount > 0) {
