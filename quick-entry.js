@@ -23,9 +23,9 @@ const QuickEntry = {
     /**
      * Load select options
      */
-    async loadSelectOptions() {
+    async loadSelectOptions(retryCount = 0) {
         try {
-            console.log('Loading select options for Quick Entry...');
+            console.log(`Loading select options for Quick Entry... (Attempt ${retryCount + 1})`);
             const [classes, subjects, terms] = await Promise.all([
                 APIClient.getClasses(),
                 APIClient.getSubjects(),
@@ -36,12 +36,22 @@ const QuickEntry = {
             console.log('Loaded subjects:', subjects);
             console.log('Loaded terms:', terms);
 
+            // Retry logic if data is empty (wait for Auth/DB init)
+            if ((classes.length === 0 || subjects.length === 0) && retryCount < 3) {
+                console.warn('Data not ready yet, retrying in 1 second...');
+                setTimeout(() => this.loadSelectOptions(retryCount + 1), 1000);
+                return;
+            }
+
             this.populateSelect('quickClass', classes);
             this.populateSelect('quickSubject', subjects);
             this.populateSelect('quickTerm', terms);
         } catch (error) {
             console.error('Error loading select options:', error);
-            Utils.showToast('Error loading dropdown options', 'error');
+            // Don't show toast on initial automatic load to avoid spamming user
+            if (retryCount > 0) {
+                Utils.showToast('Error loading dropdown options', 'error');
+            }
         }
     },
 
