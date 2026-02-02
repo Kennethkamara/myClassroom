@@ -123,8 +123,11 @@ const QuickEntry = {
             );
 
             // Update UI
-            document.getElementById('quickMarkedOver').textContent = this.currentConfig.test_marked_over;
-            document.getElementById('quickMaxAdded').textContent = this.currentConfig.max_added_marks;
+            const markedOverEl = document.getElementById('quickMarkedOver');
+            if (markedOverEl) markedOverEl.textContent = this.currentConfig.test_marked_over;
+
+            const maxAddedEl = document.getElementById('quickMaxAdded');
+            if (maxAddedEl) maxAddedEl.textContent = this.currentConfig.max_added_marks;
 
             // Set input max value
             const rawScoreInput = document.getElementById('quickRawScore');
