@@ -63,7 +63,7 @@ const StudentManager = {
         // Add student button
         const addBtn = document.getElementById('addStudentBtn');
         if (addBtn) {
-            addBtn.addEventListener('click', () => this.showAddStudentModal());
+            Utils.addClickHandler(addBtn, () => this.showAddStudentModal());
         }
 
         // Import student button
@@ -71,7 +71,7 @@ const StudentManager = {
         const fileInput = document.getElementById('importStudentFile');
 
         if (importBtn && fileInput) {
-            importBtn.addEventListener('click', () => {
+            Utils.addClickHandler(importBtn, () => {
                 const classFilter = document.getElementById('studentClassFilter');
                 if (!classFilter.value) {
                     Utils.showToast("Please select a target Class first!", "warning");
@@ -90,7 +90,7 @@ const StudentManager = {
         // Delete Class Button
         const deleteClassBtn = document.getElementById('deleteClassBtn');
         if (deleteClassBtn) {
-            deleteClassBtn.addEventListener('click', () => {
+            Utils.addClickHandler(deleteClassBtn, () => {
                 console.log("Delete Class Button Clicked!");
                 this.deleteCurrentClass();
             });
@@ -126,17 +126,17 @@ const StudentManager = {
         // Modal events
         const closeModal = document.getElementById('closeStudentModal');
         if (closeModal) {
-            closeModal.addEventListener('click', () => this.hideModal());
+            Utils.addClickHandler(closeModal, () => this.hideModal());
         }
 
         const cancelBtn = document.getElementById('cancelStudentBtn');
         if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => this.hideModal());
+            Utils.addClickHandler(cancelBtn, () => this.hideModal());
         }
 
         const saveBtn = document.getElementById('saveStudentBtn');
         if (saveBtn) {
-            saveBtn.addEventListener('click', () => this.saveStudent());
+            Utils.addClickHandler(saveBtn, () => this.saveStudent());
         }
     },
 

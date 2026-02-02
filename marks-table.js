@@ -65,12 +65,12 @@ const MarksTable = {
     attachEventListeners() {
         const loadBtn = document.getElementById('loadMarksBtn');
         if (loadBtn) {
-            loadBtn.addEventListener('click', () => this.loadMarks());
+            Utils.addClickHandler(loadBtn, () => this.loadMarks());
         }
 
         const saveBtn = document.getElementById('saveAllMarksBtn');
         if (saveBtn) {
-            saveBtn.addEventListener('click', () => this.saveAllMarks());
+            Utils.addClickHandler(saveBtn, () => this.saveAllMarks());
         }
 
         // Import Marks Button
@@ -78,7 +78,7 @@ const MarksTable = {
         const fileInput = document.getElementById('importMarksFile');
 
         if (importBtn && fileInput) {
-            importBtn.addEventListener('click', () => fileInput.click());
+            Utils.addClickHandler(importBtn, () => fileInput.click());
             fileInput.addEventListener('change', (e) => this.handleMarksImport(e));
         }
     },

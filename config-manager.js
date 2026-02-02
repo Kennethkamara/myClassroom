@@ -77,7 +77,7 @@ const ConfigManager = {
         // Save configuration button
         const saveBtn = document.getElementById('saveConfigBtn');
         if (saveBtn) {
-            saveBtn.addEventListener('click', () => this.saveConfiguration());
+            Utils.addClickHandler(saveBtn, () => this.saveConfiguration());
         }
     },
 

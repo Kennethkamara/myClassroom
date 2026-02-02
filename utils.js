@@ -443,6 +443,34 @@ const Utils = {
         el.classList.add('animate-shake');
 
         setTimeout(() => el.classList.remove('animate-shake'), 500);
+    },
+
+    /**
+     * Add mobile-compatible click handler
+     * Adds both touch and click events to prevent issues on mobile devices
+     * @param {Element} element - DOM element to attach handlers to
+     * @param {Function} handler - Click/touch handler function
+     */
+    addClickHandler(element, handler) {
+        if (!element) return;
+        
+        let touchHandled = false;
+        
+        // Touch event for mobile devices
+        element.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchHandled = true;
+            handler(e);
+            // Reset flag after a short delay to allow click events on desktop
+            setTimeout(() => touchHandled = false, 500);
+        }, { passive: false });
+        
+        // Click event for desktop (only fires if touch wasn't handled)
+        element.addEventListener('click', (e) => {
+            if (!touchHandled) {
+                handler(e);
+            }
+        });
     }
 };
 

@@ -61,22 +61,22 @@ const ExportHandler = {
     attachEventListeners() {
         const exportCSVBtn = document.getElementById('exportCSVBtn');
         if (exportCSVBtn) {
-            exportCSVBtn.addEventListener('click', () => this.exportCSV());
+            Utils.addClickHandler(exportCSVBtn, () => this.exportCSV());
         }
 
         const exportExcelBtn = document.getElementById('exportExcelBtn');
         if (exportExcelBtn) {
-            exportExcelBtn.addEventListener('click', () => this.exportExcel());
+            Utils.addClickHandler(exportExcelBtn, () => this.exportExcel());
         }
 
         const exportPDFBtn = document.getElementById('exportPDFBtn');
         if (exportPDFBtn) {
-            exportPDFBtn.addEventListener('click', () => this.exportPDF());
+            Utils.addClickHandler(exportPDFBtn, () => this.exportPDF());
         }
 
         const printBtn = document.getElementById('printBtn');
         if (printBtn) {
-            printBtn.addEventListener('click', () => this.printResults());
+            Utils.addClickHandler(printBtn, () => this.printResults());
         }
 
         // Update preview when selection changes

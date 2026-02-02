@@ -34,7 +34,7 @@ const App = {
         // Logout handler with animation
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
+            Utils.addClickHandler(logoutBtn, () => {
                 console.log('🚪 Logout clicked!');
                 const overlay = document.getElementById('logoutOverlay');
                 const content = document.getElementById('logoutContent');
@@ -94,7 +94,7 @@ const App = {
         });
 
         if (installBtn) {
-            installBtn.addEventListener('click', async () => {
+            Utils.addClickHandler(installBtn, async () => {
                 if (installPromptEl) installPromptEl.style.display = 'none';
                 if (!deferredPrompt) return;
 
@@ -110,7 +110,7 @@ const App = {
         }
 
         if (dismissBtn) {
-            dismissBtn.addEventListener('click', () => {
+            Utils.addClickHandler(dismissBtn, () => {
                 if (installPromptEl) installPromptEl.style.display = 'none';
                 // Save dismissal time
                 localStorage.setItem('installPromptDismissed', Date.now().toString());
@@ -125,7 +125,7 @@ const App = {
         ThemeManager.init();
         const themeBtn = document.getElementById('themeToggle');
         if (themeBtn) {
-            themeBtn.addEventListener('click', () => ThemeManager.toggleTheme());
+            Utils.addClickHandler(themeBtn, () => ThemeManager.toggleTheme());
         }
 
         // Initialize API Client
@@ -173,7 +173,7 @@ const App = {
         const tabButtons = document.querySelectorAll('.tab-btn');
 
         tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
+            Utils.addClickHandler(button, () => {
                 const tabName = button.dataset.tab;
                 this.showTab(tabName);
             });
